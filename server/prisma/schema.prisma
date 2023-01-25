@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id              Int      @id @default(autoincrement())
+  permission      Int
+  permission_name String
+  created_At      DateTime @default(now())
+  updated_At      DateTime @default(now())
+}
+
+model Alunos {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  rm              Int      @unique
+  data_nascimento DateTime
+  cpf             String
+  celular         String
+  telefone        String
+  email           String
+  status          Int      @default(0)
+  created_At      DateTime @default(now())
+  updated_At      DateTime @default(now())
+}
+
+model Funcionarios {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  cpf        String
+  celular    String
+  email      String
+  status     Int      @default(0)
+  created_At DateTime @default(now())
+  updated_At DateTime @default(now())
+}
+
+model Empresas {
+  id            Int      @id @default(autoincrement())
+  nome_fantasia String
+  cnpj          String   @unique
+  celular       String
+  telefone      String
+  email         String
+  status        String
+  created_At    DateTime @default(now())
+  updated_At    DateTime @default(now())
+}
+
+model cursos_tecnicos {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  duracao    Int
+  periodo    String
+  status     Int
+  created_At DateTime @default(now())
+  updated_At DateTime @default(now())
+}
+
+model cursos_ensino_medio {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  duracao    Int
+  periodo    String
+  status     Int
+  created_At DateTime @default(now())
+  updated_At DateTime @default(now())
+}
+
+model vagas {
+  id           Int      @id @default(autoincrement())
+  titulo       String
+  descricao    String
+  salario      Int
+  status       Int
+  data_inicio  DateTime
+  data_termino DateTime
+  created_At   DateTime @default(now())
+  updated_At   DateTime @default(now())
+}
