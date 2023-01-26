@@ -15,78 +15,112 @@ datasource db {
 }
 
 model Users {
-  id              Int      @id @default(autoincrement())
-  permission      Int
-  permission_name String
-  created_At      DateTime @default(now())
-  updated_At      DateTime @default(now())
+  id              Int               @id @default(autoincrement())
+  tipo            Int
+  created_At      DateTime          @default(now())
+  updated_At      DateTime          @default(now())
+  Funcionarios    Funcionarios[]
+  Alunos          Alunos[]
+  Empresas        Empresas[]
+  inscricoes_vaga inscricoes_vaga[]
 }
 
 model Alunos {
-  id              Int      @id @default(autoincrement())
+  usersId Int @id
+
   nome            String
   rm              Int      @unique
   data_nascimento DateTime
   cpf             String
-  celular         String
-  telefone        String
+  celular         String?
+  telefone        String?
   email           String
-  status          Int      @default(0)
-  created_At      DateTime @default(now())
-  updated_At      DateTime @default(now())
+
+  status Int @default(0)
+
+  cursos_tecnicosId     Int
+  cursos_ensino_medioId Int
+  created_At            DateTime @default(now())
+  updated_At            DateTime @default(now())
+
+  curso_tecnico cursos_tecnicos?     @relation(fields: [cursos_tecnicosId], references: [id])
+  ensino_medio  cursos_ensino_medio? @relation(fields: [cursos_ensino_medioId], references: [id])
+  user          Users                @relation(fields: [usersId], references: [id])
 }
 
 model Funcionarios {
-  id         Int      @id @default(autoincrement())
+  usersId    Int      @id
   nome       String
   cpf        String
-  celular    String
+  celular    String?
   email      String
   status     Int      @default(0)
   created_At DateTime @default(now())
   updated_At DateTime @default(now())
+
+  user Users @relation(fields: [usersId], references: [id])
 }
 
 model Empresas {
-  id            Int      @id @default(autoincrement())
+  usersId       Int      @id
   nome_fantasia String
   cnpj          String   @unique
-  celular       String
-  telefone      String
-  email         String
+  celular       String?
+  telefone      String?
+  email         String?
   status        String
   created_At    DateTime @default(now())
   updated_At    DateTime @default(now())
+
+  user         Users   @relation(fields: [usersId], references: [id])
+  vagasCriadas vagas[]
 }
 
 model cursos_tecnicos {
-  id         Int      @id @default(autoincrement())
-  nome       String
-  duracao    Int
-  periodo    String
-  status     Int
-  created_At DateTime @default(now())
-  updated_At DateTime @default(now())
+  id      Int     @id @default(autoincrement())
+  nome    String
+  duracao Int?
+  periodo String?
+  status  Int
+
+  Alunos Alunos[]
 }
 
 model cursos_ensino_medio {
-  id         Int      @id @default(autoincrement())
-  nome       String
-  duracao    Int
-  periodo    String
-  status     Int
-  created_At DateTime @default(now())
-  updated_At DateTime @default(now())
+  id      Int     @id @default(autoincrement())
+  nome    String
+  duracao Int?
+  periodo String?
+  status  Int
+
+  Alunos Alunos[]
 }
 
 model vagas {
   id           Int      @id @default(autoincrement())
   titulo       String
-  descricao    String
-  salario      Int
+  descricao    String?
+  salario      Int?
   status       Int
   data_inicio  DateTime
   data_termino DateTime
   created_At   DateTime @default(now())
   updated_At   DateTime @default(now())
+
+  inscricoes_vaga inscricoes_vaga[]
+  Empresas        Empresas?         @relation(fields: [empresasUsersId], references: [usersId])
+  empresasUsersId Int?
+}
+
+model inscricoes_vaga {
+  id         Int      @id @default(autoincrement())
+  usersId    Int
+  created_At DateTime @default(now())
+  updated_At DateTime @default(now())
+  vagasId    Int
+
+  user  Users @relation(fields: [usersId], references: [id])
+  vagas vagas @relation(fields: [vagasId], references: [id])
+
+  @@unique([usersId, vagasId])
 }
