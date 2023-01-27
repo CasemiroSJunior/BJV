@@ -1,27 +1,16 @@
-import Fastify from 'fastify'
-import cors from '@fastify/cors'
-import { PrismaClient } from '@prisma/client'
+import { FastifyInstance } from "fastify"
+import { prisma } from "./lib/prisma"
 import { z } from 'zod'
-const prisma = new PrismaClient({
-    log: ['query'],
-})
+import dayjs from 'dayjs'
 
-async function bootstrap() {
-    const fastify = Fastify({
-        logger: true,
-    })
-
-    await fastify.register(cors, {
-        origin: true, //Colocar o dominio ex.: www.etecbayeux.com.br
-    })
-
-    fastify.get('/vacancies', async () => {
+export async function appRoute(app: FastifyInstance){
+    app.get('/vacancies', async () => {
         const vacancies = await prisma.vagas.findMany()
 
         return { vacancies }
     })
 
-    fastify.post('/new/user/employee', async(request, reply) => {
+    app.post('/new/user/employee', async(request, reply) => {
         const createUserBody = z.object({
             password: z.string(),
             type: z.number(),
@@ -52,7 +41,7 @@ async function bootstrap() {
         return reply.status(201).send({ newEmployee })
     })
 
-    fastify.post('/new/user/student', async(request, reply) => {
+    app.post('/new/user/student', async(request, reply) => {
 
         const createStudentBody = z.object({
             password: z.string(),
@@ -68,8 +57,11 @@ async function bootstrap() {
             phone: z.string().nullable() 
         })
 
+        
         const { password, type, cpf, cellphone, email, name, birthDate, rm,
-             highSchool, technicalCourse, phone } = createStudentBody.parse(request.body)
+            highSchool, technicalCourse, phone } = createStudentBody.parse(request.body)
+            
+        const isoDate = dayjs(birthDate).toISOString()
 
         const newStudent = await prisma.users.create({
             data:{
@@ -78,7 +70,7 @@ async function bootstrap() {
                 Alunos: {
                     create:{
                         cpf: cpf,
-                        data_nascimento: birthDate,
+                        data_nascimento: isoDate,
                         email: email,
                         nome: name,
                         rm: rm,
@@ -93,44 +85,5 @@ async function bootstrap() {
         })
 
         return reply.status(201).send({ newStudent })
-        
     })
-
-    fastify.post('/new/user/company', async (request, reply) => {
-        const newCompanyBody = z.object({
-            password: z.string(),
-            type: z.number(),
-            cnpj: z.string(),
-            name: z.string(),
-            email: z.string(),
-            phone: z.string().nullable(),
-            cellphone: z.string().nullable(),
-        })
-
-        const {cellphone, cnpj, email, name, password, phone, type } = newCompanyBody.parse(request.body)
-
-        const newCompany = await prisma.users.create({
-            data:{
-                senha: password,
-                tipo: type,
-                Empresas:{
-                    create:{
-                        cnpj: cnpj,
-                        nome_fantasia: name,
-                        celular: cellphone,
-                        email: email,
-                        status: 0,
-                        telefone: phone,
-                    }
-                }
-            }
-        })
-
-        return reply.status(201).send({ newCompany })
-    })
-
-
-    await fastify.listen({ port: 3107 })
 }
-
-bootstrap()

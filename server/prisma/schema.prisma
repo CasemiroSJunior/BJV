@@ -51,7 +51,7 @@ model Alunos {
 model Funcionarios {
   usersId Int     @id
   nome    String
-  cpf     String
+  cpf     String  @unique
   celular String?
   email   String
 

@@ -1,14 +1,16 @@
-import Head from 'next/head'
+interface HomeProps {
+
+}
+
 import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '@/styles/Home.module.css'
+import whiteBayeuxLogo from '../assets/logoBayeuxBranca.png'
 
-const inter = Inter({ subsets: ['latin'] })
-
-export default function Home() {
+export default function Home(props: HomeProps) {
   return (
-    <>
-      <h1>Teste bla bla</h1>
-    </>
+    <div>
+      <main></main>
+
+      <Image src={whiteBayeuxLogo} alt="Logo da Etec. Prof. Armando Bayeux da Silva" />
+    </div>
   )
 }
