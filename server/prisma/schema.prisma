@@ -18,6 +18,7 @@ model Users {
   id         Int      @id @default(autoincrement())
   tipo       Int
   senha      String
+  foto       String?
   created_At DateTime @default(now())
   updated_At DateTime @default(now())
 
@@ -89,7 +90,6 @@ model cursos_ensino_medio {
   nome    String
   duracao Int?
   periodo String?
-  foto    String?
   status  Int     @default(0)
 
   Alunos Alunos[]

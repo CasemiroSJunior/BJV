@@ -20,7 +20,7 @@ module.exports = {
         EtecGrayText: "#666666",
         EtecLightGray: "#DADADA",
         EtecGrayHover: "#E6E6E6",
-
+        
       },
 
     },

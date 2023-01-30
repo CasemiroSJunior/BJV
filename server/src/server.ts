@@ -67,7 +67,6 @@ async function bootstrap() {
             technicalCourse: z.number().nullable(),
             phone: z.string().nullable() 
         })
-
         const { password, type, cpf, cellphone, email, name, birthDate, rm,
              highSchool, technicalCourse, phone } = createStudentBody.parse(request.body)
 
