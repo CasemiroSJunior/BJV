@@ -12,6 +12,7 @@ module.exports = {
       colors: {
         background: '#0f0f0f',
         DefaultRedEtec: "#B20000",
+        DefaultHoverBoldEtec: "#6E0000",
         DefaultRedBoldEtec: "#7E0000",
         DefaultBlueEtec: "#005C6D",
         DefaultBlueHoverEtec: "#004854",
