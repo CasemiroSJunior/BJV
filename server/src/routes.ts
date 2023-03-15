@@ -86,4 +86,5 @@ export async function appRoute(app: FastifyInstance){
 
         return reply.status(201).send({ newStudent })
     })
+
 }
