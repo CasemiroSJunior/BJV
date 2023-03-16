@@ -10,7 +10,7 @@ export default function Home(props: HomeProps) {
   return (
     <div>
       <Layout />
-      <Vacancy />
+      
       <LayoutBottom />
     </div>
   )

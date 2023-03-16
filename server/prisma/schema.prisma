@@ -96,10 +96,12 @@ model cursos_ensino_medio {
 }
 
 model vagas {
-  id        Int     @id @default(autoincrement())
-  titulo    String
-  descricao String?
-  salario   Int?
+  id         Int     @id @default(autoincrement())
+  titulo     String
+  descricao  String?
+  salario    Int?
+  tipo       Int     @default(0)
+  remunerado Int     @default(0)
 
   status Int @default(1)
 
