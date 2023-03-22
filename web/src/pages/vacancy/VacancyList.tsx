@@ -1,9 +1,9 @@
-import { Button, Divider, Grid, Paper, Tooltip, Typography } from "@mui/material";
+import { Button, Divider, Grid, Paper, Skeleton, Tooltip, Typography } from "@mui/material";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useEffect, useState } from "react";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
-import { CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
+import { Buildings, CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
 
  interface HomeProps{
         id: number;
@@ -22,18 +22,25 @@ import { CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
 export default function Vacancy({ data }) {
 
     const [vacancyList, setVacancyList] = useState([])
+    const [loading, setLoading] = useState<boolean>(true)
+
+
 
     useEffect(()=>{
+        console.log(data)
         let vacanciesTemp = [];
-        data.vacancies.map((e: HomeProps ) => e.status === 1? vacanciesTemp.push(e) : null)
+        data?.vacancies.map((e: HomeProps ) => e.status === 1? vacanciesTemp.push(e) : null)
         setVacancyList(vacanciesTemp)
+        vacanciesTemp.length === 0?
+        null:
+        setLoading(false)
     },[data])
 
     return (
         <>
         <Layout/>
             <Grid container>
-                {vacancyList?
+                {!loading?
                     vacancyList.map((vaga:HomeProps)=>
                         <Grid 
                             item 
@@ -51,15 +58,26 @@ export default function Vacancy({ data }) {
                                     {vaga.descricao? vaga.descricao : "Nenhuma Descrição foi informada sobre a vaga."}
                                 </Typography>
                                 <Divider />
-                                <Grid container xs={6}>
+                                <Grid container >
                                     <Grid item className="p-2 mx-2">
                                         {vaga.salario?
-                                        <Tooltip title={"R$ "+vaga.salario} >
+                                        <Tooltip title={"R$ "+vaga.salario} className='mt-1.5'>
                                             <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         :
-                                        <Tooltip title="Valor não informado">
+                                        <Tooltip title="Confidencial" className='mt-1.5'>
                                         <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
+                                        </Tooltip>
+                                        }
+                                    </Grid>
+                                    <Grid item className="p-2 mx-2">
+                                        {vaga.salario?
+                                        <Tooltip title={"Empresa: "+vaga.salario} className='mt-1.5'>
+                                            <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
+                                        </Tooltip>
+                                        :
+                                        <Tooltip title="Empresa Confidencial" className='mt-1.5'>
+                                        <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         }
                                     </Grid>
@@ -71,28 +89,60 @@ export default function Vacancy({ data }) {
                                 </Grid>
                             </Paper>
                         </Grid>
-                    ):
-                null
+                ):
+                    <>
+                        <Grid item xs={6} md={4} className='p-6'>
+                            <Paper className="bg-white">
+                                <Skeleton
+                                    sx={{ bgcolor: 'grey.900' }}
+                                    variant="rounded"
+                                    height={200}
+                                />
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={6} md={4} className='p-6'>
+                            <Paper className="bg-white">
+                                <Skeleton
+                                    sx={{ bgcolor: 'grey.900' }}
+                                    variant="rounded"
+                                    height={200}
+                                />
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={6} md={4} className='p-6'>
+                            <Paper className="bg-white">
+                                <Skeleton
+                                    sx={{ bgcolor: 'grey.900' }}
+                                    variant="rounded"
+                                    height={200}
+                                />
+                            </Paper>
+                        </Grid>
+                    </>
                 }
             </Grid>
-
-
-
         <LayoutBottom/>
         </>
     )
 } 
 
 export const getStaticProps: GetStaticProps = async() =>{
-    const response = await fetch('http://localhost:3107/vacancies');
-    const data = await response.json();
-
-
-    return{        
-        props:{
-            data: data,
+    try {
+        const response = await fetch('http://localhost:3107/vacancies');
+        const data = await response.json();
+    
+    
+        return{        
+            props:{
+                data: data,
+                date: new Date().toISOString()
+            },
+            revalidate: 60*60*4,
+        } 
+    } catch (error) {
+        return {props:{
+            data: null,
             date: new Date().toISOString()
-        },
-        revalidate: 60*60*4,
+        }}
     }
 }
