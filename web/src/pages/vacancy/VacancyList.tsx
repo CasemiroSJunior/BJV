@@ -1,8 +1,9 @@
-import { Grid, Paper, Typography } from "@mui/material";
+import { Button, Divider, Grid, Paper, Tooltip, Typography } from "@mui/material";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useEffect, useState } from "react";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
+import { CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
 
  interface HomeProps{
         id: number;
@@ -12,13 +13,13 @@ import LayoutBottom from "../layoutBottom";
         remunerado: number;
         tipo: number;
         status: number;
-        data_inicio: Date;
-        data_termino: Date;
-        created_At: Date;
-        updated_At: Date;
+        data_inicio: string;
+        data_termino: string;
+        created_At: string;
+        updated_At: string;
 }
 
-export default function Vacancy({ data, date }) {
+export default function Vacancy({ data }) {
 
     const [vacancyList, setVacancyList] = useState([])
 
@@ -38,22 +39,36 @@ export default function Vacancy({ data, date }) {
                             item 
                             key={vaga.id}
                             xs={12} 
-                            sm={6}
+                            sm={4}
                             className="p-6"
                         >
                             <Paper className="bg-white">
-                                <Typography  className='text-base text-center'>
+                                <Typography  className='text-center p-1 text-2xl'>
                                     {vaga.titulo}
                                 </Typography>
-                                <Typography  className='text-base text-center'>
-                                    {vaga.descricao}
+                                <Divider />
+                                <Typography  className='text-base text-justify p-2 '>
+                                    {vaga.descricao? vaga.descricao : "Nenhuma Descrição foi informada sobre a vaga."}
                                 </Typography>
-                                <Typography  className='text-base text-center'>
-                                    {vaga.salario}
-                                </Typography>
-                                <Typography  className='text-base text-center'>
-                                    De {vaga.data_inicio} até {vaga.data_termino}
-                                </Typography>
+                                <Divider />
+                                <Grid container xs={6}>
+                                    <Grid item className="p-2 mx-2">
+                                        {vaga.salario?
+                                        <Tooltip title={"R$ "+vaga.salario} >
+                                            <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
+                                        </Tooltip>
+                                        :
+                                        <Tooltip title="Valor não informado">
+                                        <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
+                                        </Tooltip>
+                                        }
+                                    </Grid>
+                                    <Grid item className="p-2" xs={6}>
+                                        <Button className="rounded-xl">
+                                            <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold" />
+                                        </Button>
+                                    </Grid>
+                                </Grid>
                             </Paper>
                         </Grid>
                     ):
