@@ -16,7 +16,34 @@ async function bootstrap() {
     })
 
     fastify.get('/vacancies', async () => {
-        const vacancies = await prisma.vagas.findMany()
+        const vacancies = await prisma.vagas.findMany({
+            include: {
+                Empresas: {
+                    select:{
+                        celular: true,
+                        cnpj: true,
+                        email: true,
+                        nome_fantasia: true,
+                        status: true,
+                        telefone: true,
+                        user: true,
+                        usersId: true,
+                        vagasCriadas: true
+                    }
+                },
+                inscricoes_vaga: {
+                    select:{
+                        created_At: true,
+                        updated_At: true,
+                        id: true,
+                        user: true,
+                        usersId: true,
+                        vagas: true,
+                        vagasId: true
+                    }
+                }
+            }
+        })
 
         return { vacancies }
     })

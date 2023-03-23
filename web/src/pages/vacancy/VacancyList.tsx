@@ -39,7 +39,7 @@ export default function Vacancy({ data }) {
     return (
         <>
         <Layout/>
-            <Grid container>
+            <Grid container className="mb-24">
                 {!loading?
                     vacancyList.map((vaga:HomeProps)=>
                         <Grid 
@@ -47,44 +47,55 @@ export default function Vacancy({ data }) {
                             key={vaga.id}
                             xs={12} 
                             sm={4}
-                            className="p-6"
+                            className="flex justify-center mt-12" 
                         >
-                            <Paper className="bg-white">
+                            <Paper className="bg-white h-128 w-384" >
                                 <Typography  className='text-center p-1 text-2xl'>
                                     {vaga.titulo}
                                 </Typography>
                                 <Divider />
-                                <Typography  className='text-base text-justify p-2 '>
-                                    {vaga.descricao? vaga.descricao : "Nenhuma Descrição foi informada sobre a vaga."}
-                                </Typography>
-                                <Divider />
-                                <Grid container >
-                                    <Grid item className="p-2 mx-2">
+                                <Grid container>
+                                    <Grid item className="p-2 mx-2 ">
                                         {vaga.salario?
-                                        <Tooltip title={"R$ "+vaga.salario} className='mt-1.5'>
+                                        <Tooltip arrow title={"R$ "+vaga.salario} className='mt-1.5'>
                                             <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         :
-                                        <Tooltip title="Confidencial" className='mt-1.5'>
+                                        <Tooltip arrow title="Confidencial" className='mt-1.5'>
                                         <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         }
                                     </Grid>
                                     <Grid item className="p-2 mx-2">
-                                        {vaga.salario?
-                                        <Tooltip title={"Empresa: "+vaga.salario} className='mt-1.5'>
+                                        {vaga.Empresas?.nome_fantasia?
+                                        <Tooltip arrow title={"Empresa: "+vaga?.Empresas?.nome_fantasia} className='mt-1.5'>
                                             <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         :
-                                        <Tooltip title="Empresa Confidencial" className='mt-1.5'>
+                                        <Tooltip arrow title="Empresa Confidencial" className='mt-1.5'>
                                         <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
                                         }
                                     </Grid>
-                                    <Grid item className="p-2" xs={6}>
-                                        <Button className="rounded-xl">
-                                            <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold" />
+                                </Grid>
+                                    <Divider/>
+                                <Typography  className='text-base text-justify p-2 h-72/100'>
+                                    {vaga.descricao? vaga.descricao : "Nenhuma Descrição foi informada sobre a vaga."}
+                                </Typography>
+                                <Divider />
+                                <Grid container  >
+                                    <Grid item className="py-1.5 px-8" xs={8}>
+                                        <Button onClick={()=>console.log(vaga)} size='large' variant="outlined" className='border rounded-md border-EtecGrayText hover:border-zinc-800  hover:bg-blue-400 text-base bg-blue-600 text-EtecLightGray hover:text-white'>
+                                                Ver mais
                                         </Button>
+                                    </Grid>
+                                    <Grid xs={1}/>
+                                    <Grid item className="p-2" xs={3}>
+                                        <Tooltip title="Aplicar a vaga" arrow>
+                                            <Button className="rounded-xl">
+                                                <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold" />
+                                            </Button>
+                                        </Tooltip>
                                     </Grid>
                                 </Grid>
                             </Paper>
@@ -121,7 +132,7 @@ export default function Vacancy({ data }) {
                     </>
                 }
             </Grid>
-        <LayoutBottom/>
+        <LayoutBottom />
         </>
     )
 } 

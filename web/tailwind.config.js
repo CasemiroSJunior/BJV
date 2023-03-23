@@ -10,7 +10,7 @@ module.exports = {
         sans: 'Roboto, verdana'
       },
       colors: {
-        background: '#0f0f0f',
+        background: '#EBEBEB',
         DefaultRedEtec: "#B20000",
         DefaultHoverBoldEtec: "#6E0000",
         DefaultRedBoldEtec: "#7E0000",
@@ -20,10 +20,15 @@ module.exports = {
         SecondaryBlueHoverEtec: "#00D8E8",
         EtecGrayText: "#666666",
         EtecLightGray: "#DADADA",
-        EtecGrayHover: "#E6E6E6",
-        
+        EtecGrayHover: "#E6E6E6"
       },
-
+      height: {
+        '128': '32rem',
+        '72/100':'72%'
+      },
+      width:{
+        '384': '24rem'
+      }
     },
   },
   plugins: [],
