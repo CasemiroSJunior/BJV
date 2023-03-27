@@ -47,13 +47,13 @@ export default function Layout(){
         setDrawerStatus(e)
     })
 
-      const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
-      };
+    const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    };
     
-      const handleClose = () => {
-        setAnchorEl(null);
-      };
+    const handleClose = () => {
+    setAnchorEl(null);
+    };
       
     const handleSnackBarClose = () =>{
         setSnackbarStatus(false)

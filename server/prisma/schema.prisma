@@ -102,6 +102,8 @@ model vagas {
   salario    Int?
   tipo       Int     @default(0)
   remunerado Int     @default(0)
+  confidencial_nome Int  @default(0)
+  confidencial_salario Int  @default(0)
 
   status Int @default(1)
 

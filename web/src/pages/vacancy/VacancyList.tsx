@@ -1,4 +1,4 @@
-import { Button, Divider, Grid, Paper, Skeleton, Tooltip, Typography } from "@mui/material";
+import { Button, Card, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Skeleton, Snackbar, Tooltip, Typography } from "@mui/material";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useEffect, useState } from "react";
 import Layout from "../layout";
@@ -19,16 +19,70 @@ import { Buildings, CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
         updated_At: string;
 }
 
+interface VacancyInfoProps{
+    showDialog: boolean;
+    setShowDialog: (showDialog: boolean)=> void;
+    closeDialog: ()=> void;
+    data: HomeProps;
+}
+
+export function VacancyInfo(props: VacancyInfoProps){
+    const {showDialog, setShowDialog, closeDialog,data, ...other} = props;
+    return(
+        showDialog === true?
+        
+        <Dialog open={showDialog} fullWidth onClose={closeDialog}>
+            <DialogTitle>{data?.titulo}</DialogTitle>
+            <Divider/>
+            <DialogContent>
+                <div>
+                    <Card variant="outlined">
+                        <Grid container>
+                            <Grid>
+                                <Button> Candidatar-se</Button>
+                            </Grid>
+                            <Grid>
+                                <Button onClick={closeDialog}>Fechar</Button>
+                            </Grid>
+                        </Grid>
+                    </Card>
+                </div>
+            </DialogContent>
+        </Dialog>
+        : null)
+}
+
 export default function Vacancy({ data }) {
 
     const [vacancyList, setVacancyList] = useState([])
     const [loading, setLoading] = useState<boolean>(true)
+    const [circularLoading, setCircularLoading] = useState<boolean>(true)
+    const [showDialog, setShowDialog ] = useState<boolean>(false);
+    const [vacancyData, setVacancyData]= useState([])
 
+    const handleCloseDialog= ()=>{
+        setShowDialog(false)
+    }
 
+    const handleOpenDialog= (data:[])=>{
+        setVacancyData(data)
+        setShowDialog(true)
+        
+
+    }
+
+    const handleVacancySubscribe= ()=>{
+        setCircularLoading(true)
+        try{
+            console.log("Certo")
+        }catch (error){
+            return (console.log("Erro"))
+        }
+        setCircularLoading(false)
+    }
 
     useEffect(()=>{
-        console.log(data)
-        let vacanciesTemp = [];
+        let vacanciesTemp:[] = [];
         data?.vacancies.map((e: HomeProps ) => e.status === 1? vacanciesTemp.push(e) : null)
         setVacancyList(vacanciesTemp)
         vacanciesTemp.length === 0?
@@ -39,6 +93,7 @@ export default function Vacancy({ data }) {
     return (
         <>
         <Layout/>
+            {circularLoading? <CircularProgress /> :null}
             <Grid container className="mb-24">
                 {!loading?
                     vacancyList.map((vaga:HomeProps)=>
@@ -85,15 +140,15 @@ export default function Vacancy({ data }) {
                                 <Divider />
                                 <Grid container  >
                                     <Grid item className="py-1.5 px-8" xs={8}>
-                                        <Button onClick={()=>console.log(vaga)} size='large' variant="outlined" className='border rounded-md border-EtecGrayText hover:border-zinc-800  hover:bg-blue-400 text-base bg-blue-600 text-EtecLightGray hover:text-white'>
+                                        <Button onClick={()=>handleOpenDialog(vaga)} size='large' variant="outlined" className='border rounded-md border-EtecGrayText hover:border-zinc-800  hover:bg-blue-400 text-base bg-blue-600 text-EtecLightGray hover:text-white'>
                                                 Ver mais
                                         </Button>
                                     </Grid>
-                                    <Grid xs={1}/>
+                                    <Grid item xs={1}/>
                                     <Grid item className="p-2" xs={3}>
                                         <Tooltip title="Aplicar a vaga" arrow>
-                                            <Button className="rounded-xl">
-                                                <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold" />
+                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe()}>
+                                                <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"  />
                                             </Button>
                                         </Tooltip>
                                     </Grid>
@@ -132,6 +187,11 @@ export default function Vacancy({ data }) {
                     </>
                 }
             </Grid>
+            <VacancyInfo
+                showDialog={showDialog}
+                closeDialog={handleCloseDialog}
+                data={vacancyData}
+            />
         <LayoutBottom />
         </>
     )
