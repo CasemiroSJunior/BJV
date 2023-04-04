@@ -113,4 +113,57 @@ export async function appRoute(app: FastifyInstance){
         return reply.status(201).send({ newStudent })
     })
 
+
+    app.post('/new/user/company', async (request, reply) => {
+        const newCompanyBody = z.object({
+            password: z.string(),
+            type: z.number(),
+            cnpj: z.string(),
+            name: z.string(),
+            email: z.string(),
+            phone: z.string().nullable(),
+            cellphone: z.string().nullable(),
+        })
+
+        const {cellphone, cnpj, email, name, password, phone, type } = newCompanyBody.parse(request.body)
+
+        const newCompany = await prisma.users.create({
+            data:{
+                senha: password,
+                tipo: type,
+                Empresas:{
+                    create:{
+                        cnpj: cnpj,
+                        nome_fantasia: name,
+                        celular: cellphone,
+                        email: email,
+                        status: 0,
+                        telefone: phone,
+                    }
+                }
+            }
+        })
+
+        return reply.status(201).send({ newCompany })
+    })
+
+    app.post(`/vacancy/sub`, async (request) => {
+        
+
+        const vacancySubBody = z.object({
+            alunoId: z.number(),
+            vacancyId: z.number(),
+        })
+        
+        const { alunoId, vacancyId } = vacancySubBody.parse(request.body)
+        
+
+        await prisma.inscricoes_vaga.create({
+            data:{
+                usersId: alunoId,
+                vagasId: vacancyId
+            }
+        })
+
+    })
 }

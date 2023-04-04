@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
 import { Buildings, CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
+import { api } from "@/lib/axios";
 
  interface HomeProps{
         id: number;
@@ -52,11 +53,11 @@ export function VacancyInfo(props: VacancyInfoProps){
         : null)
 }
 
-export default function Vacancy({ data }) {
+export default function Vacancy( ) {
 
     const [vacancyList, setVacancyList] = useState([])
+    const [vacancyListFiltered, setVacancyListFiltered] = useState([])
     const [loading, setLoading] = useState<boolean>(true)
-    const [circularLoading, setCircularLoading] = useState<boolean>(true)
     const [showDialog, setShowDialog ] = useState<boolean>(false);
     const [vacancyData, setVacancyData]= useState([])
 
@@ -71,32 +72,37 @@ export default function Vacancy({ data }) {
 
     }
 
-    const handleVacancySubscribe= ()=>{
-        setCircularLoading(true)
-        try{
-            console.log("Certo")
-        }catch (error){
-            return (console.log("Erro"))
-        }
-        setCircularLoading(false)
-    }
+    useEffect( ()=>{
+        api.get('vacancies').then(response=> { setVacancyList(response.data)})
+        
+    },[])
 
-    useEffect(()=>{
+    useEffect( ()=>{
         let vacanciesTemp:[] = [];
-        data?.vacancies.map((e: HomeProps ) => e.status === 1? vacanciesTemp.push(e) : null)
-        setVacancyList(vacanciesTemp)
-        vacanciesTemp.length === 0?
-        null:
+        vacancyList?.vacancies?.map((e: HomeProps ) => e.status === 1? vacanciesTemp.push(e) : null)
+        setVacancyListFiltered(vacanciesTemp)
         setLoading(false)
-    },[data])
+    },[vacancyList])
+
+    const handleVacancySubscribe= async(alunoId:number, vacancyId:number)=>{
+        try{
+            await api.post('vacancy/sub',{
+                alunoId,
+                vacancyId
+            })
+
+            alert("Inscrição feita com sucesso!")
+        }catch (error){
+            return alert("Erro na Inscrição- COD: VSUB-001")
+        }
+    }
 
     return (
         <>
         <Layout/>
-            {circularLoading? <CircularProgress /> :null}
             <Grid container className="mb-24">
                 {!loading?
-                    vacancyList.map((vaga:HomeProps)=>
+                    vacancyListFiltered.map((vaga:HomeProps)=>
                         <Grid 
                             item 
                             key={vaga.id}
@@ -111,7 +117,7 @@ export default function Vacancy({ data }) {
                                 <Divider />
                                 <Grid container>
                                     <Grid item className="p-2 mx-2 ">
-                                        {vaga.salario?
+                                        {vaga.confidencial_salario === 0?
                                         <Tooltip arrow title={"R$ "+vaga.salario} className='mt-1.5'>
                                             <CurrencyCircleDollar size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
@@ -122,7 +128,7 @@ export default function Vacancy({ data }) {
                                         }
                                     </Grid>
                                     <Grid item className="p-2 mx-2">
-                                        {vaga.Empresas?.nome_fantasia?
+                                        {vaga.confidencial_nome === 0?
                                         <Tooltip arrow title={"Empresa: "+vaga?.Empresas?.nome_fantasia} className='mt-1.5'>
                                             <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
@@ -147,7 +153,7 @@ export default function Vacancy({ data }) {
                                     <Grid item xs={1}/>
                                     <Grid item className="p-2" xs={3}>
                                         <Tooltip title="Aplicar a vaga" arrow>
-                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe()}>
+                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe(1, 2)}>
                                                 <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"  />
                                             </Button>
                                         </Tooltip>
@@ -197,15 +203,14 @@ export default function Vacancy({ data }) {
     )
 } 
 
-export const getStaticProps: GetStaticProps = async() =>{
+/* export const getStaticProps: GetStaticProps = async() =>{
     try {
-        const response = await fetch('http://localhost:3107/vacancies');
-        const data = await response.json();
-    
-    
+        var Data
+        await api.get('vacancies').then(response => {  Data = response.data })
+        
         return{        
             props:{
-                data: data,
+                data: Data,
                 date: new Date().toISOString()
             },
             revalidate: 60*60*4,
@@ -216,4 +221,4 @@ export const getStaticProps: GetStaticProps = async() =>{
             date: new Date().toISOString()
         }}
     }
-}
+} */
