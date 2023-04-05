@@ -153,7 +153,7 @@ export default function Vacancy( ) {
                                     <Grid item xs={1}/>
                                     <Grid item className="p-2" xs={3}>
                                         <Tooltip title="Aplicar a vaga" arrow>
-                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe(1, 2)}>
+                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe(1, vaga.id)}>
                                                 <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"  />
                                             </Button>
                                         </Tooltip>
