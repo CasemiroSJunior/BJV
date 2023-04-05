@@ -1,6 +1,7 @@
 {
     "prisma.fileWatcher": true,
     "cSpell.words": [
-        "bayeux"
+        "bayeux",
+        "dayjs"
     ]
 }
