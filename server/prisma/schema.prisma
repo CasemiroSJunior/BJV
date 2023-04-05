@@ -99,7 +99,7 @@ model vagas {
   id         Int     @id @default(autoincrement())
   titulo     String
   descricao  String?
-  salario    Int?
+  salario    Float?
   tipo       Int     @default(0)
   remunerado Int     @default(0)
   confidencial_nome Int  @default(0)
