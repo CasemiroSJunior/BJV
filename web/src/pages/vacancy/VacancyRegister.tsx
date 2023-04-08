@@ -6,6 +6,7 @@ import { REMUNERATION, STATUS, VACANCYTYPE } from "@/config/constants";
 import { LocalizationProvider, DesktopDatePicker  } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
+import { api } from "@/lib/axios";
 
 export default function VacancyRegister() {
     
@@ -18,7 +19,7 @@ export default function VacancyRegister() {
         confidencial_nome: STATUS.INATIVO,
         confidencial_salario: STATUS.INATIVO,
         status: STATUS.ATIVO,
-        empresasUsersId: 1,
+        empresasUsersId: 4,
         data_inicio: null,
         data_termino: null,
     };
@@ -27,7 +28,31 @@ export default function VacancyRegister() {
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs(new Date()),);
     const [finalDate, setFinalDate] = useState<Dayjs | null>(dayjs(new Date()),);
 
-    const handleConfidential = (event: { target: { name: string; value: any; }; }) =>{
+    const handleCreateVacancy =async()=>{
+        try{
+            await api.post(`vacancy/create`,{
+                titulo: newVacancy.titulo,
+                descricao: newVacancy.descricao,
+                salario: newVacancy.confidencial_salario == 1? 0 : Number((String(newVacancy.salario).replace(",", ".")).replace(".","")),
+                tipo: newVacancy.tipo,
+                remunerado: newVacancy.remunerado,
+                confidencial_nome: newVacancy.confidencial_nome,
+                confidencial_salario: newVacancy.confidencial_salario,
+                status: newVacancy.status,
+                empresasUsersId: newVacancy.empresasUsersId,
+                data_termino: finalDate?.format('YYYY-MM-DD'),
+                data_inicio: startDate?.format('YYYY-MM-DD'),
+                
+            })
+
+            alert("Vaga criada com sucesso")
+        }catch(err){
+            alert("Erro ao criar vaga")
+        }
+
+    }
+    
+    const handleInput = (event: { target: { name: string; value: any; }; }) =>{
         let { name, value } = event.target;
         let TempVacancy=({...newVacancy, [name]: value})
         console.log(TempVacancy)
@@ -48,32 +73,34 @@ export default function VacancyRegister() {
                     <Paper className="bg-white w-3/6 justify-center p-2" >
                         <Grid container spacing={2} >
                             <Grid sm={9} xs={12} item className="w-full">
-                                <TextField name="titulo" value={newVacancy?.titulo? newVacancy.titulo : ""} onChange={handleConfidential} label="Titulo da Vaga" className=" w-full" variant="outlined" />
+                                <TextField name="titulo" value={newVacancy?.titulo? newVacancy.titulo : ""} onChange={handleInput} label="Titulo da Vaga" className=" w-full" variant="outlined" />
                             </Grid>
                             <Grid sm={9} xs={12} item className="w-full">
-                                <TextField 
-                                    label="Salario da Vaga"
-                                    onChange={handleConfidential}
-                                    className=" w-full" 
-                                    variant="outlined"
-                                    name="salario"
-                                    value={newVacancy?.salario}
-                                    disabled={newVacancy?.confidencial_salario == 1? true: false}
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                                    }}
-                                />
+                                <Tooltip title="Não utilize ponto final para definir um valor, siga os seguintes exemplos: 'R$ 300,65', 'R$1200,50', 'R$10000,45', 'R$100000,60'">
+                                    <TextField 
+                                        label="Salario da Vaga"
+                                        onChange={handleInput}
+                                        className=" w-full" 
+                                        variant="outlined"
+                                        name="salario"
+                                        value={newVacancy?.salario}
+                                        disabled={newVacancy?.confidencial_salario == 1? true: false}
+                                        InputProps={{
+                                            startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                                        }}
+                                    />
+                                </Tooltip>
                             </Grid>
                                 <Grid xs={12} sm={3} item >
                                     <Checkbox 
                                         checked={newVacancy?.confidencial_salario == 1? true: false} 
-                                        onChange={()=>handleConfidential({target:{name: "confidencial_salario", value: newVacancy?.confidencial_salario == 1? 0 : 1 }} )}
+                                        onChange={()=>handleInput({target:{name: "confidencial_salario", value: newVacancy?.confidencial_salario == 1? 0 : 1 }} )}
                                     />
                                     <Tooltip arrow title="Caso seja marcado, o salário será OCULTADO e NÃO PODERÁ ser alterado.">
                                     <Chip 
                                         label="Confidencial?" 
                                         onClick={
-                                            ()=>handleConfidential({target:{name: "confidencial_salario", value: newVacancy?.confidencial_salario == 1? 0 : 1 }} )}
+                                            ()=>handleInput({target:{name: "confidencial_salario", value: newVacancy?.confidencial_salario == 1? 0 : 1 }} )}
                                         variant={newVacancy?.confidencial_salario == 1? "filled" : "outlined"}
                                     />
                                     </Tooltip>
@@ -83,6 +110,8 @@ export default function VacancyRegister() {
                                     id="outlined-multiline-static"
                                     label="Descrição"
                                     multiline
+                                    onChange={handleInput}
+                                    name="descricao"
                                     rows={8}
                                     className="w-full"
                                 />
@@ -97,7 +126,7 @@ export default function VacancyRegister() {
                                             labelId="select-tipo"
                                             label="Tipo de Vaga"
                                             value={newVacancy.tipo}
-                                            onChange={handleConfidential}
+                                            onChange={handleInput}
                                         >
                                         {VACANCYTYPE?.ARRAY.map((type) => (
                                             <MenuItem
@@ -118,12 +147,12 @@ export default function VacancyRegister() {
                                             labelId="select-remuneration"
                                             label="REMUNERAÇÃO"
                                             value={newVacancy.remunerado}
-                                            onChange={handleConfidential}
+                                            onChange={handleInput}
                                         >
                                         {REMUNERATION?.ARRAY.map((type) => (
                                             <MenuItem
                                                 key={type.id}
-                                                value={type.id}
+                                                value={type?.id}
                                             >
                                             {type.name}
                                             </MenuItem>
@@ -137,12 +166,12 @@ export default function VacancyRegister() {
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <Stack spacing={3}>
                                         <DesktopDatePicker
-                                            label="Data de Início"
+                                            label="Prazo da Vaga: Início"
                                             value={startDate}
                                             views={["year", "month", "day"]}
                                             format="DD/MM/YYYY"
                                             onChange={handleChangeStartDate}
-                                            renderInput={(params) => <TextField {...params} />}
+                                            renderInput={(params: any) => <TextField {...params} />}
                                         />
                                     </Stack>
                                 </LocalizationProvider>
@@ -151,12 +180,12 @@ export default function VacancyRegister() {
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <Stack spacing={3}>
                                         <DesktopDatePicker
-                                            label="Data de Termino"
+                                            label="Prazo da Vaga: Término"
                                             value={finalDate}
                                             views={["year", "month", "day"]}
                                             format="DD/MM/YYYY"
                                             onChange={handleChangeFinalDate}
-                                            renderInput={(params) => <TextField {...params} />}
+                                            renderInput={(params: any) => <TextField {...params} />}
                                         />
                                     </Stack>
                                 </LocalizationProvider>
@@ -166,7 +195,7 @@ export default function VacancyRegister() {
                             <Grid xs={12}  sm={3} item>
                                 <Checkbox 
                                     checked={newVacancy.status == 1? true : false}
-                                    onChange={()=>handleConfidential({target:{name:"status", value:newVacancy.status == 1? STATUS.INATIVO : STATUS.ATIVO }})}
+                                    onChange={()=>handleInput({target:{name:"status", value:newVacancy.status == 1? STATUS.INATIVO : STATUS.ATIVO }})}
                                     color="primary" 
                                 /> 
                                 <Tooltip 
@@ -176,7 +205,7 @@ export default function VacancyRegister() {
                                     <Chip 
                                         label="Vaga Ativa?" 
                                         onClick={
-                                            ()=>handleConfidential({target:{name: "status", value: newVacancy?.status == 1? 0 : 1 }} )}
+                                            ()=>handleInput({target:{name: "status", value: newVacancy?.status == 1? 0 : 1 }} )}
                                         variant={newVacancy?.status == 1? "filled" : "outlined"}
                                     />
                                 </Tooltip>          
@@ -185,14 +214,14 @@ export default function VacancyRegister() {
                             <Grid xs={12} sm={5} justifyContent={"center"} item>
                                     <Checkbox 
                                         checked={newVacancy.confidencial_nome == 1? true : false}
-                                        onChange={()=>handleConfidential({target:{name:"confidencial_nome", value:newVacancy.confidencial_nome == 1? STATUS.INATIVO : STATUS.ATIVO }})}
+                                        onChange={()=>handleInput({target:{name:"confidencial_nome", value:newVacancy.confidencial_nome == 1? STATUS.INATIVO : STATUS.ATIVO }})}
                                         color="primary" 
                                     />
                                 <Tooltip arrow title="Caso seja marcado, o salário será OCULTADO e NÃO PODERÁ ser alterado.">
                                     <Chip 
                                         label="Empesa Confidencial?" 
                                         onClick={
-                                            ()=>handleConfidential({target:{name: "confidencial_nome", value: newVacancy?.confidencial_nome == 1? 0 : 1 }} )}
+                                            ()=>handleInput({target:{name: "confidencial_nome", value: newVacancy?.confidencial_nome == 1? 0 : 1 }} )}
                                         variant={newVacancy?.confidencial_nome == 1? "filled" : "outlined"}
                                     />
                                 </Tooltip>
@@ -203,7 +232,7 @@ export default function VacancyRegister() {
                             <Grid item className="justify-center-center" xs={12} sm={6}>
                                 <Button 
                                     className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
-                                    onClick={()=>console.log(newVacancy)}
+                                    onClick={()=>handleCreateVacancy()}
                                 > 
                                         CRIAR VAGA
                                 </Button>
