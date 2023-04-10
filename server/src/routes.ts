@@ -166,4 +166,53 @@ export async function appRoute(app: FastifyInstance){
         })
 
     })
+
+    app.post(`/vacancy/create`, async (request)=>{
+
+        const vacancyBody = z.object({
+            titulo : z.string(),
+            descricao : z.string(),
+            salario: z.number(),
+            tipo: z.number(),
+            remunerado: z.number(),
+            confidencial_nome: z.number(),
+            confidencial_salario: z.number(),
+            status: z.number(),
+            empresasUsersId: z.number(),
+            data_inicio: z.string(),
+            data_termino: z.string(),
+        })
+
+        const {
+            confidencial_nome,
+            confidencial_salario,
+            data_inicio,
+            data_termino,
+            descricao,
+            empresasUsersId,
+            remunerado,
+            salario,
+            status,
+            tipo,
+            titulo
+        } = vacancyBody.parse(request.body)
+
+
+        await prisma.vagas.create({
+            data:{
+                data_inicio: new Date(data_inicio),
+                data_termino: new Date(data_termino),
+                titulo: titulo,
+                descricao: descricao,
+                empresasUsersId: empresasUsersId,
+                remunerado: remunerado,
+                salario: salario,
+                status: status,
+                tipo: tipo,
+                confidencial_nome: confidencial_nome,
+                confidencial_salario: confidencial_salario,
+            }
+        })
+
+    })
 }
