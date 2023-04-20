@@ -1,4 +1,4 @@
-import { Button, Card, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Skeleton, Snackbar, Tooltip, Typography } from "@mui/material";
+import { Button, Card, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Skeleton, Snackbar, Tooltip, Typography, TextField } from "@mui/material";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import { useEffect, useState } from "react";
 import Layout from "../layout";
@@ -37,7 +37,17 @@ export function VacancyInfo(props: VacancyInfoProps){
             <Divider/>
             <DialogContent>
                 <div>
-                    <Card variant="outlined">
+                    <Grid>
+                        <TextField 
+                            id="outlined-multiline-static"
+                            label="Multiline"
+                            multiline
+                            rows={20}
+                            defaultValue=""
+                            className="w-full"
+                        />
+                    </Grid>
+                    <Card variant="outlined" className="mt-5 ">
                         <Grid container>
                             <Grid>
                                 <Button> Candidatar-se</Button>

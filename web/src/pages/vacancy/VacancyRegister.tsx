@@ -33,9 +33,9 @@ export default function VacancyRegister() {
             await api.post(`vacancy/create`,{
                 titulo: newVacancy.titulo,
                 descricao: newVacancy.descricao,
-                salario: newVacancy.confidencial_salario == 1? 0 : Number((String(newVacancy.salario).replace(",", ".")).replace(".","")),
+                salario: newVacancy.remunerado === 1? (newVacancy.confidencial_salario == 1? 0 : Number((String(newVacancy.salario).replace(",", ".")).replace(".",""))) : 0,
                 tipo: newVacancy.tipo,
-                remunerado: newVacancy.remunerado,
+                remunerado: newVacancy.tipo === VACANCYTYPE.CLT? 1 : newVacancy.remunerado,
                 confidencial_nome: newVacancy.confidencial_nome,
                 confidencial_salario: newVacancy.confidencial_salario,
                 status: newVacancy.status,
@@ -44,10 +44,12 @@ export default function VacancyRegister() {
                 data_inicio: startDate?.format('YYYY-MM-DD'),
                 
             })
-
             alert("Vaga criada com sucesso")
+            setNewVacancy(NEW_VACANCY);
+            setStartDate(dayjs(new Date()));
+            setFinalDate(dayjs(new Date()))
         }catch(err){
-            alert("Erro ao criar vaga")
+            alert("Erro ao criar vaga, por favor, revise as informações")
         }
 
     }
@@ -118,7 +120,7 @@ export default function VacancyRegister() {
                             </Grid>
                         </Grid>
                         <Grid container spacing={2} className="mt-2">
-                            <Grid item xs={12} sm={6} >
+                            <Grid item xs={12} sm={newVacancy.tipo === VACANCYTYPE.CLT? 12 : 6} >
                                 <FormControl className="w-full">
                                     <InputLabel id="vacancyType">Tipo de Vaga</InputLabel>
                                         <Select
@@ -139,6 +141,7 @@ export default function VacancyRegister() {
                                         </Select>
                                 </FormControl>
                             </Grid>
+                            {newVacancy.tipo === VACANCYTYPE.CLT? null :
                             <Grid item xs={12} sm={6} >
                                 <FormControl className="w-full">
                                     <InputLabel id="remuneration">REMUNERAÇÃO</InputLabel>
@@ -159,37 +162,41 @@ export default function VacancyRegister() {
                                         ))}
                                         </Select>
                                 </FormControl>
-                            </Grid>
+                            </Grid>}
                         </Grid>
                         <Grid container spacing={2} className="p-2 mt-2">
-                            <Grid item className="justify-center-center" xs={12} sm={6}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <Stack spacing={3}>
-                                        <DesktopDatePicker
-                                            label="Prazo da Vaga: Início"
-                                            value={startDate}
-                                            views={["year", "month", "day"]}
-                                            format="DD/MM/YYYY"
-                                            onChange={handleChangeStartDate}
-                                            renderInput={(params: any) => <TextField {...params} />}
-                                        />
-                                    </Stack>
-                                </LocalizationProvider>
-                            </Grid>
-                            <Grid item className="justify-center-center" xs={12} sm={6}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <Stack spacing={3}>
-                                        <DesktopDatePicker
-                                            label="Prazo da Vaga: Término"
-                                            value={finalDate}
-                                            views={["year", "month", "day"]}
-                                            format="DD/MM/YYYY"
-                                            onChange={handleChangeFinalDate}
-                                            renderInput={(params: any) => <TextField {...params} />}
-                                        />
-                                    </Stack>
-                                </LocalizationProvider>
-                            </Grid>
+                            <Tooltip arrow title="Data de inicio para as inscrição na vaga.">
+                                <Grid item className="justify-center-center" xs={12} sm={6}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <Stack spacing={3}>
+                                            <DesktopDatePicker
+                                                label="Prazo da Vaga: Início"
+                                                value={startDate}
+                                                views={["year", "month", "day"]}
+                                                format="DD/MM/YYYY"
+                                                onChange={handleChangeStartDate}
+                                                renderInput={(params: any) => <TextField {...params} />}
+                                            />
+                                        </Stack>
+                                    </LocalizationProvider>
+                                </Grid>
+                            </Tooltip>
+                            <Tooltip arrow title="Data de encerramento para as inscrições da vaga.">
+                                <Grid item className="justify-center-center" xs={12} sm={6}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <Stack spacing={3}>
+                                            <DesktopDatePicker
+                                                label="Prazo da Vaga: Término"
+                                                value={finalDate}
+                                                views={["year", "month", "day"]}
+                                                format="DD/MM/YYYY"
+                                                onChange={handleChangeFinalDate}
+                                                renderInput={(params: any) => <TextField {...params} />}
+                                            />
+                                        </Stack>
+                                    </LocalizationProvider>
+                                </Grid>
+                            </Tooltip>
                         </Grid>
                         <Grid container spacing={2} justifyContent="start" alignItems="center" className="p-3">
                             <Grid xs={12}  sm={3} item>
@@ -240,7 +247,7 @@ export default function VacancyRegister() {
                             <Grid item xs={12} sm={6} >
                                 <Button 
                                     className="bg-red-600 w-full hover:bg-red-800 text-base text-white"
-                                    onClick={()=>console.log(startDate)}
+                                    onClick={()=>console.log(newVacancy)}
                                 > 
                                     CANCELAR
                                 </Button>

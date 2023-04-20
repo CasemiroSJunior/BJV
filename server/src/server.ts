@@ -1,6 +1,7 @@
 import fastify from "fastify";
 import cors from '@fastify/cors'
 import { appRoute } from "./routes";
+import { PrismaClient } from "@prisma/client";
 
 const app = fastify()
 
@@ -15,6 +16,8 @@ app.listen({
     port: 3107,
     host: '0.0.0.0'
 }).then(()=> {
-    console.log("HTTP Server Running")
+    new PrismaClient({
+        log: ['query']
+    })
 })
 
