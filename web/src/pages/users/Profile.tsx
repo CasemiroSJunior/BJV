@@ -69,7 +69,7 @@ export default function Profile() {
                                             value={newVacancy.tipo}
                                             onChange={handleInput}
                                         >
-                                        {VACANCYTYPE?.ARRAY.map((type) => (
+                                        {VACANCY_TYPE?.ARRAY.map((type) => (
                                             <MenuItem
                                                 key={type?.id}
                                                 value={type?.id}

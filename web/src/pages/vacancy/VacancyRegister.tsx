@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, Chip, FormControl, FormControlLabel, Grid, Input
 import { useEffect, useState } from "react";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
-import { REMUNERATION, STATUS, VACANCYTYPE } from "@/config/constants";
+import { REMUNERATION, STATUS, VACANCY_TYPE } from "@/config/constants";
 import { LocalizationProvider, DesktopDatePicker  } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
@@ -14,7 +14,7 @@ export default function VacancyRegister() {
         titulo : null,
         descricao : null,
         salario: 0,
-        tipo: VACANCYTYPE.ESTAGIO,
+        tipo: VACANCY_TYPE.ESTAGIO,
         remunerado: STATUS.ATIVO,
         confidencial_nome: STATUS.INATIVO,
         confidencial_salario: STATUS.INATIVO,
@@ -35,7 +35,7 @@ export default function VacancyRegister() {
                 descricao: newVacancy.descricao,
                 salario: newVacancy.remunerado === 1? (newVacancy.confidencial_salario == 1? 0 : Number((String(newVacancy.salario).replace(",", ".")).replace(".",""))) : 0,
                 tipo: newVacancy.tipo,
-                remunerado: newVacancy.tipo === VACANCYTYPE.CLT? 1 : newVacancy.remunerado,
+                remunerado: newVacancy.tipo === VACANCY_TYPE.CLT? 1 : newVacancy.remunerado,
                 confidencial_nome: newVacancy.confidencial_nome,
                 confidencial_salario: newVacancy.confidencial_salario,
                 status: newVacancy.status,
@@ -120,7 +120,7 @@ export default function VacancyRegister() {
                             </Grid>
                         </Grid>
                         <Grid container spacing={2} className="mt-2">
-                            <Grid item xs={12} sm={newVacancy.tipo === VACANCYTYPE.CLT? 12 : 6} >
+                            <Grid item xs={12} sm={newVacancy.tipo === VACANCY_TYPE.CLT? 12 : 6} >
                                 <FormControl className="w-full">
                                     <InputLabel id="vacancyType">Tipo de Vaga</InputLabel>
                                         <Select
@@ -130,7 +130,7 @@ export default function VacancyRegister() {
                                             value={newVacancy.tipo}
                                             onChange={handleInput}
                                         >
-                                        {VACANCYTYPE?.ARRAY.map((type) => (
+                                        {VACANCY_TYPE?.ARRAY.map((type:{id: number, name: string}) => (
                                             <MenuItem
                                                 key={type?.id}
                                                 value={type?.id}
@@ -141,7 +141,7 @@ export default function VacancyRegister() {
                                         </Select>
                                 </FormControl>
                             </Grid>
-                            {newVacancy.tipo === VACANCYTYPE.CLT? null :
+                            {newVacancy.tipo === VACANCY_TYPE.CLT? null :
                             <Grid item xs={12} sm={6} >
                                 <FormControl className="w-full">
                                     <InputLabel id="remuneration">REMUNERAÇÃO</InputLabel>
@@ -152,7 +152,7 @@ export default function VacancyRegister() {
                                             value={newVacancy.remunerado}
                                             onChange={handleInput}
                                         >
-                                        {REMUNERATION?.ARRAY.map((type) => (
+                                        {REMUNERATION?.ARRAY.map((type:{id: number, name: string}) => (
                                             <MenuItem
                                                 key={type.id}
                                                 value={type?.id}
