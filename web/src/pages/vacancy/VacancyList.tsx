@@ -7,17 +7,20 @@ import { Buildings, CurrencyCircleDollar, PlusCircle } from 'phosphor-react'
 import { api } from "@/lib/axios";
 
  interface HomeProps{
-        id: number;
-        titulo: string;
-        descricao: string;
-        salario: number;
-        remunerado: number;
-        tipo: number;
-        status: number;
-        data_inicio: string;
-        data_termino: string;
-        created_At: string;
-        updated_At: string;
+    id: number;
+    titulo: string;
+    descricao: string;
+    salario: number;
+    remunerado: number;
+    tipo: number;
+    status: number;
+    data_inicio: string;
+    data_termino: string;
+    created_At: string;
+    updated_At: string;
+    confidencial_salario: number;
+    confidencial_nome: number;
+    Empresas: {nome_fantasia: string};
 }
 
 interface VacancyInfoProps{
@@ -112,7 +115,7 @@ export default function Vacancy( ) {
         <Layout/>
             <Grid container className="mb-24">
                 {!loading?
-                    vacancyListFiltered.map((vaga:HomeProps)=>
+                    vacancyListFiltered.map((vaga: HomeProps)=>
                         <Grid 
                             item 
                             key={vaga.id}
