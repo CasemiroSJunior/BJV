@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import {
-  Container,
   TextField,
   Button,
   Typography,
@@ -12,6 +11,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  FormControlLabel,
+  Switch,
+  Chip,
+  Tooltip,
 } from "@mui/material"
 
 import { useRouter } from "next/router";
@@ -107,14 +110,14 @@ export default function Register() {
       <Layout />
       <Grid container className="mb-24 mt-12 justify-center">
         <Paper className="bg-white w-3/6 justify-center p-2" >
-          <Grid container spacing={2} >
-            <Grid item xs={12} sm={6} >
+          <Grid container spacing={2} justifyContent={'center'} justifyItems={'center'} >
+            <Grid item xs={12} sm={6}>
               <FormControl className="w-full">
-                <InputLabel id="remuneration">TIPO DE USUÁRIO</InputLabel>
+                <InputLabel className="w-full" id="remuneration">TIPO DE USUÁRIO</InputLabel>
                   <Select
                     name="userType"
                     labelId="select-userType"
-                    label="Tipo de Usuário"
+                    label="TIPO DE USUÁRIO"
                     value={userData.tipo}
                     onChange={handleChangeUserType}
                   >
@@ -130,14 +133,86 @@ export default function Register() {
               </FormControl>
             </Grid>
           </Grid>
-          <Grid container >
           { ( userData.tipo === USER_TYPE.ALUNO ) &&
-              <Grid item xs={12}>
-                
-
-
-
-              </Grid>}
+            <Grid container spacing={1} >
+              <Grid item xs={12} md={4} className="mt-2" >
+                <TextField
+                  variant="outlined"
+                  value={userData.nome}
+                  name="nome"
+                  label="Nome"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4} className="mt-2" >
+                <TextField
+                  variant="outlined"
+                  value={userData.cpf}
+                  name="cpf"
+                  label="CPF"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4} className="mt-2" >
+                <TextField
+                  variant="outlined"
+                  value={userData.rm}
+                  name="rm"
+                  label="RM Escolar"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4} className="" >
+                <TextField
+                  variant="outlined"
+                  value={userData.email}
+                  name="email"
+                  label="E-MAIL"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4} className="" >
+                <TextField
+                  variant="outlined"
+                  value={userData.telefone}
+                  name="senha"
+                  label="Senha"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={<Switch color="primary" checked={userData.status === STATUS.ATIVO}  />}
+                  label="Status"
+                  labelPlacement="top"
+                />
+                <Tooltip title="Status da conta, se ela estiver ativa, o usuário conseguirá se conectar normalmente, caso não, ele não conseguirá conectar na conta">
+                  <Chip
+                    label={userData.status === STATUS.ATIVO? "Ativo" : "Inativo"}
+                    variant={userData.status === STATUS.ATIVO? "filled" : "outlined"}
+                  />
+                </Tooltip>
+              </Grid>
+              <Grid item xs={12} md={6} className="" >
+                <TextField
+                  variant="outlined"
+                  value={userData.telefone}
+                  name="telefone"
+                  label="Telefone"
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={6} className="" >
+                <TextField
+                  variant="outlined"
+                  value={userData.celular}
+                  name="celular"
+                  label="Celular"
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+          }
             { (userData.tipo === USER_TYPE.EMPRESA) &&
               <Grid item xs={12}>
 
@@ -154,8 +229,7 @@ export default function Register() {
 
 
 
-              </Grid>}
-          </Grid>
+            </Grid>}
         </Paper>
       </Grid>
       <LayoutBottom />
