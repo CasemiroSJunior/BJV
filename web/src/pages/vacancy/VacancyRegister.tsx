@@ -201,8 +201,8 @@ export default function VacancyRegister() {
                         <Grid container spacing={2} justifyContent="start" alignItems="center" className="p-3">
                             <Grid xs={12}  sm={3} item>
                                 <Checkbox 
-                                    checked={newVacancy.status == 1? true : false}
-                                    onChange={()=>handleInput({target:{name:"status", value:newVacancy.status == 1? STATUS.INATIVO : STATUS.ATIVO }})}
+                                    checked={newVacancy.status == STATUS.ATIVO? true : false}
+                                    onChange={()=>handleInput({target:{name:"status", value:newVacancy.status == STATUS.ATIVO? STATUS.INATIVO : STATUS.ATIVO }})}
                                     color="primary" 
                                 /> 
                                 <Tooltip 
