@@ -35,31 +35,43 @@ export async function appRoute(app: FastifyInstance){
         })
         return { vacancies }
     })
+    
+    app.get('/cursos/tecnico', async()=>{
+        const curso = await prisma.cursos_tecnicos.findMany()
+
+        return { curso }
+    })
+    app.get('/cursos/medio', async()=>{
+        const curso = await prisma.cursos_ensino_medio.findMany()
+
+        return { curso }
+    })
 
     app.post('/new/user/employee', async(request, reply) => {
         const createUserBody = z.object({
-            password: z.string(),
-            type: z.number(),
+            senha: z.string(),
+            tipo: z.number(),
             cpf: z.string(),
-            cellphone: z.string().nullable(),
+            celular: z.string().nullable(),
             email: z.string(),
-            name: z.string(),
+            nome: z.string(),
+            status: z.number()
 
         })
 
-        const { password, type, cpf, cellphone, email, name } = createUserBody.parse(request.body)
+        const { senha, tipo, cpf, celular, email, nome, status} = createUserBody.parse(request.body)
         
         const newEmployee = await prisma.users.create({
             data:{
-                senha: password,
-                tipo: type,
+                senha: senha,
+                tipo: tipo,
                 Funcionarios: {
                     create: {
                         cpf: cpf,
                         email: email,
-                        nome: name,
-                        celular: cellphone,
-                        status: 0,
+                        nome: nome,
+                        celular: celular,
+                        status: status,
                     }
                 }
             }
@@ -70,41 +82,44 @@ export async function appRoute(app: FastifyInstance){
     app.post('/new/user/student', async(request, reply) => {
 
         const createStudentBody = z.object({
-            password: z.string(),
-            type: z.number(),
+            senha: z.string(),
+            tipo: z.number(),
             cpf: z.string(),
-            cellphone: z.string().nullable(),
-            email: z.string(),
-            name: z.string(),
-            birthDate: z.date(),
-            rm: z.number(),
-            highSchool: z.number().nullable(),
-            technicalCourse: z.number().nullable(),
-            phone: z.string().nullable() 
-        })
+            celular: z.string().nullable(),
+            email: z.string().email(),
+            nome: z.string(),
+            data_nascimento: z.coerce.date(),
+            rm: z.number().min(1).max(7),
+            ensinoMedio: z.number().nullable(),
+            cursoTecnico: z.number().nullable(),
+            telefone: z.string().nullable(),
+            status: z.number(),
+        });
 
-        
-        const { password, type, cpf, cellphone, email, name, birthDate, rm,
-            highSchool, technicalCourse, phone } = createStudentBody.parse(request.body)
+        const { senha, tipo, cpf, celular, email, nome, data_nascimento, rm,
+            ensinoMedio, cursoTecnico, telefone, status } = createStudentBody.parse(request.body)
             
-        const isoDate = dayjs(birthDate).toISOString()
+        const isoDate = data_nascimento
+        const today = dayjs().startOf('day').toDate()
 
         const newStudent = await prisma.users.create({
             data:{
-                senha: password,
-                tipo: type,
+                senha: senha,
+                tipo: tipo,
+                created_At:today,
+                updated_At:today,
                 Alunos: {
                     create:{
                         cpf: cpf,
                         data_nascimento: isoDate,
                         email: email,
-                        nome: name,
+                        nome: nome,
                         rm: rm,
-                        celular: cellphone, 
-                        status: 0,
-                        curso_ensino_medio_Id: highSchool,
-                        curso_tecnico_Id: technicalCourse,
-                        telefone: phone,
+                        celular: celular, 
+                        status: status,
+                        curso_ensino_medio_Id: ensinoMedio,
+                        curso_tecnico_Id: cursoTecnico,
+                        telefone: telefone,
                     }
                 }
             }
@@ -116,29 +131,32 @@ export async function appRoute(app: FastifyInstance){
 
     app.post('/new/user/company', async (request, reply) => {
         const newCompanyBody = z.object({
-            password: z.string(),
-            type: z.number(),
+            senha: z.string(),
+            tipo: z.number(),
             cnpj: z.string(),
-            name: z.string(),
+            nome: z.string(),
             email: z.string(),
-            phone: z.string().nullable(),
-            cellphone: z.string().nullable(),
+            telefone: z.string().nullable(),
+            celular: z.string().nullable(),
+            status: z.number()
         })
 
-        const {cellphone, cnpj, email, name, password, phone, type } = newCompanyBody.parse(request.body)
+        console.log(request.body)
+
+        const {celular, cnpj, email, nome, senha, telefone, tipo, status } = newCompanyBody.parse(request.body)
 
         const newCompany = await prisma.users.create({
             data:{
-                senha: password,
-                tipo: type,
+                senha: senha,
+                tipo: tipo,
                 Empresas:{
                     create:{
                         cnpj: cnpj,
-                        nome_fantasia: name,
-                        celular: cellphone,
+                        nome_fantasia: nome,
+                        celular: celular,
                         email: email,
-                        status: 0,
-                        telefone: phone,
+                        status: status,
+                        telefone: telefone,
                     }
                 }
             }

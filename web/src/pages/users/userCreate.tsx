@@ -1,5 +1,4 @@
-import { ChangeEvent, useState } from "react";
-import axios from "axios";
+import { ChangeEvent, useEffect, useState } from "react";
 import dayjs, { Dayjs } from 'dayjs';
 import {
   TextField,
@@ -19,6 +18,8 @@ import {
   Stack,
   InputAdornment,
   IconButton,
+  Checkbox,
+  CheckboxProps,
 } from "@mui/material"
 
 import * as helper from "../../utils/Helper"
@@ -30,10 +31,11 @@ import { STATUS, USER_TYPE } from "@/config/constants";
 import { DesktopDatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Eye, EyeClosed } from "phosphor-react";
+import { api } from "@/lib/axios";
 
 interface Users {
   nome?: string,
-  tipo: number | null,
+  tipo: number,
   cpf?: string,
   email?: string, 
   celular?: string,
@@ -43,20 +45,44 @@ interface Users {
   cnpj?: string,
   nome_fantasia?: string,
   senha: string | null,
+  ensinoMedio?: number | string,
+  ensinoTecnico?: number | string
 }
 
+interface cursoTecnico {
+  curso: Array<{
+    id: number,
+    nome: string,
+    status: number,
+    duracao?: number | undefined,
+    periodo?: string | undefined,
+  }>
+};
+
+interface ensinoMedio {
+  curso: Array<{
+    id: number,
+    nome: string,
+    status: number,
+    duracao?: number | undefined,
+    periodo?: string | undefined,
+  }>
+};
+
 export default function Register() {
-  const [name, setName] = useState("");
-  const [emailConfirmation, setEmailConfirmation] = useState("");
-  const [passwordConfirmation, setPasswordConfirmation] = useState("");
-  const [dataNascimento, setDataNascimento] = useState<Dayjs | null>(dayjs(new Date()),);
-  const [error, setError] = useState("");
+  const [emailConfirmation, setEmailConfirmation] = useState<string >("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState<string >("");
+  const [dataNascimento, setDataNascimento] = useState<Dayjs | null>(dayjs().subtract(10,'year'));
   const [passwordHidden, setPasswordHidden] = useState<boolean>(true)
+  const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio>()
+  const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico>()
+  const [checkedEm, setCheckedEm] = useState<boolean>(false);
+  const [checkedEt, setCheckedEt] = useState<boolean>(false);
   const router = useRouter();
   
   const NEW_USER = {
-    senha: null,
-    tipo: null,
+    senha: "",
+    tipo: 99,
     status: STATUS.INATIVO,
     email: "",
     celular: "",
@@ -69,8 +95,6 @@ export default function Register() {
     nome: "",
     cpf: "",
     tipo: USER_TYPE.FUNCIONARIO,
-    cnpj: "",
-    rm: null,
   };
 
   const NEW_USER_ALUNO = {
@@ -82,16 +106,21 @@ export default function Register() {
     telefone: "",
     tipo: USER_TYPE.ALUNO,
     cnpj: "",
+    ensinoMedio: "",
+    cursoTecnico: "",
   }
 
   const NEW_USER_EMPRESA = {
     ...NEW_USER,
-    nome_fantasia: "",
+    nome: "",
     cnpj: "",
     telefone:"",
     tipo: USER_TYPE.EMPRESA,
-    rm: null,
-    data_nascimento: "",
+  }
+
+  const handleGetData = async()=>{
+    await api.get('/cursos/tecnico').then((response)=> {setEnsinoTecnicoList(response.data)})
+    await api.get('/cursos/medio').then((response)=> {setEnsinoMedioList(response.data)})
   }
 
   const handleChangeUserType = (event:any) =>{
@@ -108,7 +137,7 @@ export default function Register() {
     }
     setEmailConfirmation("")
     setPasswordConfirmation("")
-    setDataNascimento(dayjs(new Date()))
+    setDataNascimento(dayjs().subtract(10,'year'))
     setPasswordHidden(true)
   }
 
@@ -120,22 +149,30 @@ export default function Register() {
     setUserData(NEW_USER)
     setEmailConfirmation("")
     setPasswordConfirmation("")
-    setDataNascimento(dayjs(new Date()))
+    setDataNascimento(dayjs().subtract(10,'year'))
     
   }
 
-  const handleInputData = (data: {target :{ name:string; value: any;}; })=>{
+  const handleInputData = (data: {target :{ name:string; value: number | string | null | undefined;}; })=>{
     let {name, value } = data.target
-    if (name === "cpf") value = helper.cpf(data.target.value)
-    if (name === "cnpj") value = helper.cnpj(data.target.value)
+    if (name === "cpf") (String(data.target.value).length) < 15? value = helper.cpf(data.target.value) : value = userData.cpf
+    if (name === "cnpj") (String(data.target.value).length) < 19? value = helper.cnpj(data.target.value) : value = userData.cnpj
     if (name === "celular") value = helper.cell(data.target.value)
     if (name === "telefone") value = helper.tell(data.target.value)
+    if (name === "rm") (String(data.target.value).length) < 7?   data.target.value != 0? value = Number(helper.numbersOnlyFilter(data.target.value)) : value = null : value = userData.rm
+    if (name === "tipo") value = Number(data.target.value)
+    if (name === "status") value = Number(data.target.value)
+    if (name === 'nome') value = helper.wordOnlyFilter(data.target.value)
     
     let dataTemp = {...userData, [name]: value}
-    console.log(dataTemp)
     setUserData(dataTemp)
 
   }
+
+  useEffect(()=>{
+    handleGetData()
+  },[])
+
 
   /* 
     Procurando tipagem para o event, referência:
@@ -150,19 +187,49 @@ export default function Register() {
     setEmailConfirmation(e.target.value)
   }
 
+  const handleResetCheck = (data: any)=>{
+    let {checked, name} = data.target
+
+    if (name === "checkEm" && checked !== true){
+      setCheckedEm(false)
+      userData.ensinoMedio = ""
+    }
+    if (name === "checkEt" && checked !== true){
+      setCheckedEt(false)
+      userData.ensinoTecnico = ""
+    }
+    if (name === "checkEm" && checked !== false){
+      setCheckedEm(true)
+    }
+    if (name === "checkEt" && checked !== false){
+      setCheckedEt(true)
+    }
+  }
+
   const handleDateOfBirth = (date:Dayjs | null)=>{
     setDataNascimento(date)
 }
 
   const handleSubmit = async (e:any) => {
     e.preventDefault();
-    try {
-      const res = await axios.post("/api/register", { name, email, password });
-      if (res.data.success) {
-        router.push("/login");
+    
+    let res
+    if (userData.senha === passwordConfirmation && userData.email === emailConfirmation){
+      try {
+        if (userData.tipo === USER_TYPE.EMPRESA){
+          res = await api.post('new/user/company',userData)
+        }
+        if (userData.tipo === USER_TYPE.ALUNO){
+          let dataTemp = {...userData, data_nascimento: dataNascimento}
+          res = await api.post('new/user/student',dataTemp)
+        }
+        if (userData.tipo === USER_TYPE.FUNCIONARIO){
+          res = await api.post('new/user/employee',userData)
+        }
+        alert("Usuário criado com sucesso")
+      } catch (err:any) {
+        alert("Erro ao criar usuário")
       }
-    } catch (err:any) {
-      setError(err.response.data.message);
     }
   };
 
@@ -172,7 +239,7 @@ export default function Register() {
       <Grid container className="mb-24 mt-12 justify-center">
         <Paper className="bg-white w-3/6 justify-center p-2" >
           <Grid container spacing={2} >
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={5}>
               <FormControl className="w-full">
                 <InputLabel className="w-full" id="remuneration">TIPO DE USUÁRIO</InputLabel>
                   <Select
@@ -193,21 +260,49 @@ export default function Register() {
                   </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4} >
-                <FormControlLabel
-                  control={<Switch color="primary" checked={userData.status === STATUS.ATIVO}  />}
-                  label="Status"
-                  labelPlacement="top"
-                  name="status"
-                  onChange={()=>handleInputData({target:{name:"status", value: userData.status === STATUS.INATIVO? STATUS.ATIVO: STATUS.INATIVO}})}
+            <Grid item xs={12} md={7} >
+              <FormControlLabel
+                control={<Switch color="primary" checked={userData.status === STATUS.ATIVO}  />}
+                label="Status"
+                labelPlacement="top"
+                name="status"
+                onChange={()=>handleInputData({target:{name:"status", value: userData.status === STATUS.INATIVO? STATUS.ATIVO: STATUS.INATIVO}})}
+              />
+              <Tooltip arrow title="Status da conta, se ela estiver ativa, o usuário conseguirá se conectar normalmente, caso não, ele não conseguirá conectar na conta">
+                <Chip
+                  label={userData.status === STATUS.ATIVO? "Ativo" : "Inativo"}
+                  variant={userData.status === STATUS.ATIVO? "filled" : "outlined"}
                 />
-                <Tooltip arrow title="Status da conta, se ela estiver ativa, o usuário conseguirá se conectar normalmente, caso não, ele não conseguirá conectar na conta">
-                  <Chip
-                    label={userData.status === STATUS.ATIVO? "Ativo" : "Inativo"}
-                    variant={userData.status === STATUS.ATIVO? "filled" : "outlined"}
+              </Tooltip>
+              { (userData.tipo === USER_TYPE.ALUNO ) &&
+                <>
+                  <FormControlLabel 
+                    required={(userData.ensinoMedio == "" && userData.ensinoTecnico == "")} 
+                    labelPlacement="bottom"
+                    name="checkEm"
+                    control={
+                      <Checkbox 
+                        checked={checkedEm}
+                        onChange={handleResetCheck}
+                      />
+                    }
+                    label="Ensino Médio" 
                   />
-                </Tooltip>
-              </Grid>
+                  <FormControlLabel 
+                    required={(userData.ensinoMedio == "" && userData.ensinoTecnico == "")} 
+                    labelPlacement="bottom"
+                    name="checkEt"
+                    control={
+                      <Checkbox 
+                        checked={checkedEt}
+                        onChange={handleResetCheck}
+                      />
+                    } 
+                    label="Curso Técnico" 
+                  />
+                </>
+              }  
+            </Grid>
           </Grid>
           { ( userData.tipo === USER_TYPE.ALUNO ) &&
             <Grid container spacing={1} >
@@ -229,8 +324,9 @@ export default function Register() {
                             value={dataNascimento}
                             views={["year", "month", "day"]}
                             onChange={handleDateOfBirth}
+                            minDate={dayjs('1900-01-01')}
+                            maxDate={dayjs().subtract(10,'year')}
                             format="DD/MM/YYYY"
-                            renderInput={(params: any) => <TextField {...params} />}
                         />
                     </Stack>
                 </LocalizationProvider>
@@ -255,13 +351,59 @@ export default function Register() {
                   fullWidth
                 />
               </Grid>
+              {checkedEm &&
+              <Grid item xs={12} sm={(checkedEt && checkedEm)? 6 : 12 }>
+                <FormControl className="w-full">
+                  <InputLabel className="w-full" id="remuneration">Ensino Médio</InputLabel>
+                    <Select
+                      name="ensinoMedio"
+                      labelId="select-ensinoMedio"
+                      label="Ensino Médio"
+                      value={userData.ensinoMedio}
+                      onChange={handleInputData}
+                    >
+                      {ensinoMedioList?.curso?.map((curso:ensinoMedio['curso'][0]) => (
+                        <MenuItem
+                            key={curso.id}
+                            value={curso?.id}
+                        >
+                          {curso.nome}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+              </Grid>
+              }
+              {checkedEt &&
+              <Grid item xs={12} sm={(checkedEt && checkedEm)? 6 : 12 }>
+                <FormControl className="w-full">
+                  <InputLabel className="w-full" id="remuneration">Ensino Técnico</InputLabel>
+                    <Select
+                      name="ensinoTecnico"
+                      labelId="select-ensinoTecnico"
+                      label="Ensino Técnico"
+                      value={userData.ensinoTecnico}
+                      onChange={handleInputData}
+                    >
+                      {ensinoTecnicoList?.curso?.map((curso:cursoTecnico['curso'][0]) => (
+                        <MenuItem
+                            key={curso.id}
+                            value={curso?.id}
+                        >
+                          {curso.nome}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                </FormControl>
+              </Grid>
+              }
               <Grid item xs={12} md={6} className="mt-2" >
                 <TextField
                   variant="outlined"
                   value={userData.email}
                   onChange={handleInputData}
                   name="email"
-                  label="E-MAIL"
+                  label="E-Mail"
                   fullWidth
                 />
               </Grid>
@@ -269,9 +411,11 @@ export default function Register() {
                 <TextField
                   variant="outlined"
                   value={emailConfirmation}
-                  onChange={handleSetEmailValidation}                  
+                  onChange={handleSetEmailValidation}
+                  error={userData.email !== emailConfirmation? true : false}
+                  helperText={userData.email !== emailConfirmation? "E-Mail divergentes" : ""}                  
                   name="emailConfirmation"
-                  label="Confirmação de E-MAIL"
+                  label="Confirmação de E-Mail"
                   fullWidth
                 />
               </Grid>
@@ -302,6 +446,8 @@ export default function Register() {
                   variant="outlined"
                   value={passwordConfirmation}
                   type={passwordHidden? "password" : "text"}
+                  error={userData.senha !== passwordConfirmation? true : false}
+                  helperText={userData.senha !== passwordConfirmation? "Senhas divergentes" : ""}
                   onChange={handleSetPasswordValidation}
                   name="passwordConfirmation"
                   label="Confirmação de Senha"
@@ -343,7 +489,7 @@ export default function Register() {
                 <Grid item className="justify-center-center" xs={12} sm={6}>
                     <Button 
                         className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
-                        onClick={()=>console.log(userData)}
+                        onClick={handleSubmit}
                     > 
                             ADICIONAR USUÁRIO
                     </Button>
@@ -388,7 +534,7 @@ export default function Register() {
                       value={userData.email}
                       onChange={handleInputData}
                       name="email"
-                      label="E-MAIL"
+                      label="E-Mail"
                       fullWidth
                     />
                   </Grid>
@@ -396,9 +542,11 @@ export default function Register() {
                     <TextField
                       variant="outlined"
                       value={emailConfirmation}
-                      onChange={handleSetEmailValidation}                  
+                      onChange={handleSetEmailValidation}        
+                      error={userData.email !== emailConfirmation? true : false}
+                      helperText={userData.email !== emailConfirmation? "E-Mail divergentes" : ""}          
                       name="emailConfirmation"
-                      label="Confirmação de E-MAIL"
+                      label="Confirmação de E-Mail"
                       fullWidth
                     />
                   </Grid>
@@ -429,6 +577,8 @@ export default function Register() {
                       variant="outlined"
                       value={passwordConfirmation}
                       type={passwordHidden? "password" : "text"}
+                      error={userData.senha !== passwordConfirmation? true : false}
+                      helperText={userData.senha !== passwordConfirmation? "Senhas divergentes" : ""}
                       onChange={handleSetPasswordValidation}
                       name="passwordConfirmation"
                       label="Confirmação de Senha"
@@ -470,7 +620,7 @@ export default function Register() {
                     <Grid item className="justify-center-center" xs={12} sm={6}>
                         <Button 
                             className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
-                            onClick={()=>console.log(userData)}
+                            onClick={handleSubmit}
                         > 
                                 ADICIONAR USUÁRIO
                         </Button>
@@ -515,7 +665,7 @@ export default function Register() {
                     value={userData.email}
                     onChange={handleInputData}
                     name="email"
-                    label="E-MAIL"
+                    label="E-Mail"
                     fullWidth
                   />
                 </Grid>
@@ -523,9 +673,11 @@ export default function Register() {
                   <TextField
                     variant="outlined"
                     value={emailConfirmation}
+                    error={userData.email !== emailConfirmation? true : false}
+                    helperText={userData.email !== emailConfirmation? "E-Mail divergentes" : ""}
                     onChange={handleSetEmailValidation}                  
                     name="emailConfirmation"
-                    label="Confirmação de E-MAIL"
+                    label="Confirmação de E-Mail"
                     fullWidth
                   />
                 </Grid>
@@ -556,6 +708,8 @@ export default function Register() {
                     variant="outlined"
                     value={passwordConfirmation}
                     type={passwordHidden? "password" : "text"}
+                    error={userData.senha !== passwordConfirmation? true : false}
+                    helperText={userData.senha !== passwordConfirmation? "Senhas divergentes" : ""}
                     onChange={handleSetPasswordValidation}
                     name="passwordConfirmation"
                     label="Confirmação de Senha"
@@ -597,7 +751,7 @@ export default function Register() {
                   <Grid item className="justify-center-center" xs={12} sm={6}>
                       <Button 
                           className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
-                          onClick={()=>console.log(userData)}
+                          onClick={handleSubmit}
                       > 
                               ADICIONAR USUÁRIO
                       </Button>

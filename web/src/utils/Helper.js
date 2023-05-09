@@ -38,3 +38,17 @@ export const tell = (v) =>{
     v = v.replace(/(-\d{4})\d+?$/, "$1")
     return v
 }
+
+    //Feito por conta, função fácil, porém necessária.
+
+export const numbersOnlyFilter = (v) =>{
+    v = v.replace(/\D/g,"")
+
+    return v
+}
+
+export const wordOnlyFilter = (v) =>{
+    v = v.replace(/\d/g,"")
+
+    return v
+}
