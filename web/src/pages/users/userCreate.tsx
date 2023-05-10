@@ -1,30 +1,12 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import dayjs, { Dayjs } from 'dayjs';
 import {
-  TextField,
-  Button,
-  Typography,
-  Link,
-  Grid,
-  Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Switch,
-  Chip,
-  Tooltip,
-  Stack,
-  InputAdornment,
-  IconButton,
-  Checkbox,
-  CheckboxProps,
+  TextField, Button, Grid, Paper, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Switch, Chip, Tooltip, Stack, 
+  InputAdornment, IconButton,Checkbox,
 } from "@mui/material"
 
 import * as helper from "../../utils/Helper"
 
-import { useRouter } from "next/router";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
 import { STATUS, USER_TYPE } from "@/config/constants";
@@ -46,7 +28,7 @@ interface Users {
   nome_fantasia?: string,
   senha: string | null,
   ensinoMedio?: number | string,
-  ensinoTecnico?: number | string
+  cursoTecnico?: number | string
 }
 
 interface cursoTecnico {
@@ -78,7 +60,6 @@ export default function Register() {
   const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico>()
   const [checkedEm, setCheckedEm] = useState<boolean>(false);
   const [checkedEt, setCheckedEt] = useState<boolean>(false);
-  const router = useRouter();
   
   const NEW_USER = {
     senha: "",
@@ -196,7 +177,7 @@ export default function Register() {
     }
     if (name === "checkEt" && checked !== true){
       setCheckedEt(false)
-      userData.ensinoTecnico = ""
+      userData.cursoTecnico = ""
     }
     if (name === "checkEm" && checked !== false){
       setCheckedEm(true)
@@ -241,7 +222,7 @@ export default function Register() {
           <Grid container spacing={2} >
             <Grid item xs={12} sm={5}>
               <FormControl className="w-full">
-                <InputLabel className="w-full" id="remuneration">TIPO DE USUÁRIO</InputLabel>
+                <InputLabel className="w-full" id="userType">TIPO DE USUÁRIO</InputLabel>
                   <Select
                     name="userType"
                     labelId="select-userType"
@@ -277,7 +258,7 @@ export default function Register() {
               { (userData.tipo === USER_TYPE.ALUNO ) &&
                 <>
                   <FormControlLabel 
-                    required={(userData.ensinoMedio == "" && userData.ensinoTecnico == "")} 
+                    required={(userData.ensinoMedio == "" && userData.cursoTecnico == "")} 
                     labelPlacement="bottom"
                     name="checkEm"
                     control={
@@ -289,7 +270,7 @@ export default function Register() {
                     label="Ensino Médio" 
                   />
                   <FormControlLabel 
-                    required={(userData.ensinoMedio == "" && userData.ensinoTecnico == "")} 
+                    required={(userData.ensinoMedio == "" && userData.cursoTecnico == "")} 
                     labelPlacement="bottom"
                     name="checkEt"
                     control={
@@ -354,7 +335,7 @@ export default function Register() {
               {checkedEm &&
               <Grid item xs={12} sm={(checkedEt && checkedEm)? 6 : 12 }>
                 <FormControl className="w-full">
-                  <InputLabel className="w-full" id="remuneration">Ensino Médio</InputLabel>
+                  <InputLabel className="w-full" id="ensinoMedio">Ensino Médio</InputLabel>
                     <Select
                       name="ensinoMedio"
                       labelId="select-ensinoMedio"
@@ -377,12 +358,12 @@ export default function Register() {
               {checkedEt &&
               <Grid item xs={12} sm={(checkedEt && checkedEm)? 6 : 12 }>
                 <FormControl className="w-full">
-                  <InputLabel className="w-full" id="remuneration">Ensino Técnico</InputLabel>
+                  <InputLabel className="w-full" id="ensinoTecnico">Curso Técnico</InputLabel>
                     <Select
-                      name="ensinoTecnico"
-                      labelId="select-ensinoTecnico"
-                      label="Ensino Técnico"
-                      value={userData.ensinoTecnico}
+                      name="cursoTecnico"
+                      labelId="select-cursoTecnico"
+                      label="Curso Técnico"
+                      value={userData.cursoTecnico}
                       onChange={handleInputData}
                     >
                       {ensinoTecnicoList?.curso?.map((curso:cursoTecnico['curso'][0]) => (
@@ -490,6 +471,13 @@ export default function Register() {
                     <Button 
                         className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
                         onClick={handleSubmit}
+                        disabled={(
+                          passwordConfirmation !== userData.senha ||
+                           emailConfirmation !== userData.email || 
+                           (userData.celular == "" && userData.telefone == "")
+                           || userData.senha == "" || 
+                           userData.email == ""
+                        )}
                     > 
                             ADICIONAR USUÁRIO
                     </Button>
@@ -621,6 +609,7 @@ export default function Register() {
                         <Button 
                             className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
                             onClick={handleSubmit}
+                            disabled={(passwordConfirmation !== userData.senha || emailConfirmation !== userData.email || (userData.celular == "" && userData.telefone == ""))}
                         > 
                                 ADICIONAR USUÁRIO
                         </Button>
@@ -752,6 +741,7 @@ export default function Register() {
                       <Button 
                           className="bg-green-600 w-full hover:bg-green-500 text-base text-white"
                           onClick={handleSubmit}
+                          disabled={(passwordConfirmation !== userData.senha || emailConfirmation !== userData.email || (userData.celular == "" && userData.telefone == ""))}
                       > 
                               ADICIONAR USUÁRIO
                       </Button>
