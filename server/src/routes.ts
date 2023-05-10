@@ -1,7 +1,15 @@
-import { FastifyInstance } from "fastify"
+import { FastifyInstance, FastifyRequest } from "fastify"
 import { prisma } from "./lib/prisma"
-import { z } from 'zod'
+import { number, z } from 'zod'
 import dayjs from 'dayjs'
+
+interface GetUsersParams {
+    tipo: number;
+    nome: string;
+    status: number;
+    cursoTecnico: number;
+    ensinoMedio: number;
+  }
 
 export async function appRoute(app: FastifyInstance){
     app.get('/vacancies', async () => {
@@ -47,6 +55,80 @@ export async function appRoute(app: FastifyInstance){
         return { curso }
     })
 
+    app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async(request: FastifyRequest<{Params: GetUsersParams}>, reply)=>{
+        const paramsBody = z.object({
+            tipo: z.number(),
+            nome: z.string(),
+            status: z.number(),
+            cursoTecnico: z.number().nullable(),
+            ensinoMedio:  z.number().nullable(),
+        })
+
+        
+
+        const convertedValues = {
+            tipo: Number(request.params.tipo),
+            status: Number(request.params.status),
+            cursoTecnico: request.params.cursoTecnico? Number(request.params.cursoTecnico): null,
+            ensinoMedio: request.params.ensinoMedio?Number(request.params.ensinoMedio): null,
+            nome: request.params.nome,
+        }
+
+        const { cursoTecnico, ensinoMedio, nome, status, tipo } = paramsBody.parse(convertedValues)
+
+
+        const conditions = {
+            include:{
+                Empresas:{},
+                Alunos:{},
+                Funcionarios:{}
+            },
+            where:{
+
+            }
+        }
+
+        if (tipo >= 0 && tipo <= 3){
+            conditions.where = {...conditions.where, tipo: tipo}
+        }
+        if (status){
+            conditions.where = {...conditions.where, status: status}
+        }
+        /* if(cursoTecnico){
+            conditions.include.Alunos.where = {...conditions.include.Alunos.where, cursoTecnico: cursoTecnico}
+        }
+        if(ensinoMedio){
+            conditions.include.Alunos.where = {...conditions.include.Alunos.where, ensinoMedio: ensinoMedio}
+        } */
+        const userList = await prisma.users.findMany(
+            {
+                include:{
+                    Alunos:{},
+                    Empresas:{},
+                    Funcionarios:{},
+                },
+                where:{
+                    Alunos: {
+                        some:{
+                            nome:{
+                                contains:nome 
+                            }, 
+                            AND:{ status:status, curso_ensino_medio_Id: ensinoMedio? ensinoMedio : {gte: 0} ,curso_tecnico_Id: cursoTecnico? cursoTecnico : {gte: 0} }
+                            
+                        } 
+                    },
+                    AND:{tipo:tipo}
+                    
+                }
+            }
+        )
+
+        console.log(conditions)
+        console.log(userList)
+
+        return reply.status(200).send({ userList })
+    })
+
     app.post('/new/user/employee', async(request, reply) => {
         const createUserBody = z.object({
             senha: z.string(),
@@ -89,7 +171,7 @@ export async function appRoute(app: FastifyInstance){
             email: z.string().email(),
             nome: z.string(),
             data_nascimento: z.coerce.date(),
-            rm: z.number().min(1).max(7),
+            rm: z.number(),
             ensinoMedio: z.number().nullable(),
             cursoTecnico: z.number().nullable(),
             telefone: z.string().nullable(),
