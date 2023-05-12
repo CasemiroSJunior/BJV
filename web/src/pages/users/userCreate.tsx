@@ -346,7 +346,7 @@ export default function Register() {
                       {ensinoMedioList?.curso?.map((curso:ensinoMedio['curso'][0]) => (
                         <MenuItem
                             key={curso.id}
-                            value={curso?.id}
+                            value={String(curso?.id)}
                         >
                           {curso.nome}
                         </MenuItem>
@@ -369,7 +369,7 @@ export default function Register() {
                       {ensinoTecnicoList?.curso?.map((curso:cursoTecnico['curso'][0]) => (
                         <MenuItem
                             key={curso.id}
-                            value={curso?.id}
+                            value={String(curso?.id)}
                         >
                           {curso.nome}
                         </MenuItem>

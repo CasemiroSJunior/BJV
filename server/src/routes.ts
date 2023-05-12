@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest } from "fastify"
 import { prisma } from "./lib/prisma"
-import { number, z } from 'zod'
+import { z } from 'zod'
 import dayjs from 'dayjs'
 
 interface GetUsersParams {
@@ -17,11 +17,6 @@ export async function appRoute(app: FastifyInstance){
             include: {
                 Empresas: {
                     select:{
-                        celular: true,
-                        cnpj: true,
-                        email: true,
-                        nome_fantasia: true,
-                        status: true,
                         telefone: true,
                         user: true,
                         usersId: true,
@@ -55,79 +50,56 @@ export async function appRoute(app: FastifyInstance){
         return { curso }
     })
 
-    app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async(request: FastifyRequest<{Params: GetUsersParams}>, reply)=>{
+    app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async (request: FastifyRequest<{ Params: GetUsersParams }>, reply) => {
         const paramsBody = z.object({
-            tipo: z.number(),
-            nome: z.string(),
-            status: z.number(),
-            cursoTecnico: z.number().nullable(),
-            ensinoMedio:  z.number().nullable(),
-        })
-
-        
-
+          tipo: z.number().nullable().default(null),
+          nome: z.string(),
+          status: z.number(),
+          cursoTecnico: z.number().nullable(),
+          ensinoMedio: z.number().nullable(),
+        });
+      
         const convertedValues = {
-            tipo: Number(request.params.tipo),
-            status: Number(request.params.status),
-            cursoTecnico: request.params.cursoTecnico? Number(request.params.cursoTecnico): null,
-            ensinoMedio: request.params.ensinoMedio?Number(request.params.ensinoMedio): null,
-            nome: request.params.nome,
+          tipo: request.params.tipo ? Number(request.params.tipo) : null,
+          status: Number(request.params.status),
+          cursoTecnico: request.params.cursoTecnico ? Number(request.params.cursoTecnico) : null,
+          ensinoMedio: request.params.ensinoMedio ? Number(request.params.ensinoMedio) : null,
+          nome: request.params.nome,
+        };
+      
+        const { cursoTecnico, ensinoMedio, nome, status, tipo } = paramsBody.parse(convertedValues);
+      
+        const conditions: any = {
+          include: {
+            Empresas: true,
+            Alunos: true,
+            Funcionarios: true,
+          },
+          where: {},
+        };
+      
+        if (nome) conditions.where={nome: { contains: nome }}
+
+        if (tipo !== null && !isNaN(tipo) && tipo >= 0 && tipo <= 3) {
+          conditions.where.tipo = tipo;
         }
-
-        const { cursoTecnico, ensinoMedio, nome, status, tipo } = paramsBody.parse(convertedValues)
-
-
-        const conditions = {
-            include:{
-                Empresas:{},
-                Alunos:{},
-                Funcionarios:{}
+      
+        if (status) {
+          conditions.where.status = status;
+        }
+      
+        if (tipo === 1) {
+          conditions.include.Alunos = {
+            where: {
+              curso_tecnico_Id: cursoTecnico || undefined,
+              curso_ensino_medio_Id: ensinoMedio || undefined,
             },
-            where:{
-
-            }
+          };
         }
-
-        if (tipo >= 0 && tipo <= 3){
-            conditions.where = {...conditions.where, tipo: tipo}
-        }
-        if (status){
-            conditions.where = {...conditions.where, status: status}
-        }
-        /* if(cursoTecnico){
-            conditions.include.Alunos.where = {...conditions.include.Alunos.where, cursoTecnico: cursoTecnico}
-        }
-        if(ensinoMedio){
-            conditions.include.Alunos.where = {...conditions.include.Alunos.where, ensinoMedio: ensinoMedio}
-        } */
-        const userList = await prisma.users.findMany(
-            {
-                include:{
-                    Alunos:{},
-                    Empresas:{},
-                    Funcionarios:{},
-                },
-                where:{
-                    Alunos: {
-                        some:{
-                            nome:{
-                                contains:nome 
-                            }, 
-                            AND:{ status:status, curso_ensino_medio_Id: ensinoMedio? ensinoMedio : {gte: 0} ,curso_tecnico_Id: cursoTecnico? cursoTecnico : {gte: 0} }
-                            
-                        } 
-                    },
-                    AND:{tipo:tipo}
-                    
-                }
-            }
-        )
-
-        console.log(conditions)
-        console.log(userList)
-
-        return reply.status(200).send({ userList })
-    })
+      
+        const userList = await prisma.users.findMany(conditions);
+        return reply.status(200).send({ userList });
+    });
 
     app.post('/new/user/employee', async(request, reply) => {
         const createUserBody = z.object({
@@ -147,13 +119,13 @@ export async function appRoute(app: FastifyInstance){
             data:{
                 senha: senha,
                 tipo: tipo,
+                email: email,
+                nome: nome,
+                celular: celular,
+                status: status,
                 Funcionarios: {
                     create: {
                         cpf: cpf,
-                        email: email,
-                        nome: nome,
-                        celular: celular,
-                        status: status,
                     }
                 }
             }
@@ -172,8 +144,8 @@ export async function appRoute(app: FastifyInstance){
             nome: z.string(),
             data_nascimento: z.coerce.date(),
             rm: z.number(),
-            ensinoMedio: z.number().nullable(),
-            cursoTecnico: z.number().nullable(),
+            ensinoMedio: z.string().nullable(),
+            cursoTecnico: z.string().nullable(),
             telefone: z.string().nullable(),
             status: z.number(),
         });
@@ -190,17 +162,17 @@ export async function appRoute(app: FastifyInstance){
                 tipo: tipo,
                 created_At:today,
                 updated_At:today,
+                email: email,
+                nome: nome,
+                celular: celular,
+                status: status,
                 Alunos: {
                     create:{
                         cpf: cpf,
                         data_nascimento: isoDate,
-                        email: email,
-                        nome: nome,
                         rm: rm,
-                        celular: celular, 
-                        status: status,
-                        curso_ensino_medio_Id: ensinoMedio,
-                        curso_tecnico_Id: cursoTecnico,
+                        curso_ensino_medio_Id: ensinoMedio === ""? null : Number(ensinoMedio) ,
+                        curso_tecnico_Id: cursoTecnico === ""? null : Number(cursoTecnico),
                         telefone: telefone,
                     }
                 }
@@ -231,13 +203,13 @@ export async function appRoute(app: FastifyInstance){
             data:{
                 senha: senha,
                 tipo: tipo,
+                celular: celular,
+                email: email,
+                nome: nome,
+                status: status,
                 Empresas:{
                     create:{
                         cnpj: cnpj,
-                        nome_fantasia: nome,
-                        celular: celular,
-                        email: email,
-                        status: status,
                         telefone: telefone,
                     }
                 }

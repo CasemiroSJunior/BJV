@@ -15,10 +15,15 @@ datasource db {
 }
 
 model Users {
-  id         Int      @id @default(autoincrement())
-  tipo       Int
-  senha      String
-  foto       String?
+  id      Int     @id @default(autoincrement())
+  tipo    Int
+  senha   String
+  nome    String?
+  celular String?
+  email   String?
+  foto    String?
+  status  Int     @default(0)
+
   created_At DateTime @default(now())
   updated_At DateTime @default(now())
 
@@ -31,15 +36,10 @@ model Users {
 model Alunos {
   usersId Int @id
 
-  nome            String
   rm              Int      @unique
   data_nascimento DateTime
   cpf             String   @unique
-  celular         String?
   telefone        String?
-  email           String
-
-  status Int @default(0)
 
   curso_tecnico_Id      Int?
   curso_ensino_medio_Id Int?
@@ -50,26 +50,16 @@ model Alunos {
 }
 
 model Funcionarios {
-  usersId Int     @id
-  nome    String
-  cpf     String  @unique
-  celular String?
-  email   String
-
-  status Int @default(0)
+  usersId Int    @id
+  cpf     String @unique
 
   user Users @relation(fields: [usersId], references: [id])
 }
 
 model Empresas {
-  usersId       Int     @id
-  nome_fantasia String
-  cnpj          String  @unique
-  celular       String?
-  telefone      String?
-  email         String?
-
-  status Int @default(0)
+  usersId  Int     @id
+  cnpj     String  @unique
+  telefone String?
 
   user         Users   @relation(fields: [usersId], references: [id])
   vagasCriadas vagas[]
@@ -96,14 +86,14 @@ model cursos_ensino_medio {
 }
 
 model vagas {
-  id         Int     @id @default(autoincrement())
-  titulo     String
-  descricao  String?
-  salario    Float?
-  tipo       Int     @default(0)
-  remunerado Int     @default(0)
-  confidencial_nome Int  @default(0)
-  confidencial_salario Int  @default(0)
+  id                   Int     @id @default(autoincrement())
+  titulo               String
+  descricao            String?
+  salario              Float?
+  tipo                 Int     @default(0)
+  remunerado           Int     @default(0)
+  confidencial_nome    Int     @default(0)
+  confidencial_salario Int     @default(0)
 
   status Int @default(1)
 
