@@ -7,6 +7,8 @@ import LayoutBottom from "../layoutBottom";
 import TableComponent from '@/components/Table';
 import { api } from '@/lib/axios';
 import { USER_TYPE } from '@/config/constants';
+import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
+import { Pencil, Trash } from 'phosphor-react';
 
 interface cursoTecnico {
     curso: Array<{
@@ -106,18 +108,26 @@ export default function AdminPanel() {
     const columns = [
         {field: "id", headerName:"ID", width:80},
         {field: "tipo", headerName:"Tipo", width:100},
-        {field: "foto", headerName:"", width:60},
+        {field: "foto", headerName:"", width:60, sortable:false, renderCell:(params:string)=><Avatar onClick={()=>console.log( params )} src={params.row.foto} />},
         {field: "nome", headerName:"Nome", width:170},
-        {field: "cpf", headerName:"CPF/CNPJ", width:150},
+        {field: "cpf", headerName:"CPF/CNPJ", sortable:false,width:150},
         {field: "email", headerName:"E-Mail", width:220},
         {field: "rm", headerName:"RM", width:100},
         {field: "status", headerName:"Status", width:80},
-        {field: "highschool", headerName:"Ensino Médio", width:270},
-        {field: "technical", headerName:"Técnico", width:270},
+        {field: "highschool", flex:2, headerName:"Ensino Médio", width:270},
+        {field: "technical", flex:2, headerName:"Técnico", width:270},
+        {
+            field: 'actions',
+            type: 'actions',
+            getActions: (params: GridRowParams) => [
+              <GridActionsCellItem icon={<Pencil size={24}/>} onClick={()=>console.log(params)} label="Editar" />,
+              <GridActionsCellItem icon={<Trash/>} onClick={()=>console.log("Delete Action")} label="Apagar" showInMenu />,
+            ]
+          }
     ]
 
     const [users, setUsers] = useState([])
-
+    const [pageSize, setPageSize] = useState(5)
     return (
         <>
             <Layout />
@@ -126,7 +136,7 @@ export default function AdminPanel() {
                 container
                 className="mb-24 mt-12"
             >
-                <Paper className="bg-white">
+                <Paper className="bg-white w-full">
                     <TableComponent rows={userList} columns={columns} title='Gerenciar Usuários' data={userList} />
                 </Paper>
             </Grid>

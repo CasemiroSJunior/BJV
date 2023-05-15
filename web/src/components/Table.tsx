@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, TableHead, TableRow, TableCell, TableBody, Box, Typography } from "@mui/material";
-import { DataGrid } from '@mui/x-data-grid';
+import type {} from '@mui/x-data-grid/themeAugmentation';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
 interface TableComponentProps {
   data: string[] | number[];
@@ -9,7 +10,7 @@ interface TableComponentProps {
   columns: any[];
 }
 
-const TableComponent: React.FC<TableComponentProps> = ({ data, rows, title, columns, rowId}) => {
+const TableComponent: React.FC<TableComponentProps> = ({ data, rows, title, columns}) => {
 
   console.log(rows)
   
@@ -23,9 +24,11 @@ const TableComponent: React.FC<TableComponentProps> = ({ data, rows, title, colu
         {title}
       </Typography>
       <DataGrid
+        pageSizeOptions={[5,10,25,50,100]}
         columns={columns}
         rows={rows}
         getRowId={rows=>"ID:"+rows.id}
+        slots={{ toolbar: GridToolbar}}
       />
       
     </Box>
