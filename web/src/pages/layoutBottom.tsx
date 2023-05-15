@@ -11,7 +11,7 @@ return (
     <Typography 
         className='justify-center text-center text-base text-white p-8'
     >
-        ©2014 - {new Date().getFullYear()}, Etec Rio Claro - Etec Prof. Armando Bayeux da Silva - TODOS OS DIREITOS RESERVADOS
+         ETEC Rio Claro - ETEC Prof. Armando Bayeux da Silva - PROJETO DE TCC {new Date().getFullYear()}
     </Typography>
     </div>
     )

@@ -1,8 +1,12 @@
 import { 
     Drawer, Button, Avatar, Box, AppBar, Toolbar, IconButton, Typography, Menu, MenuItem, Grid, BottomNavigation, DialogTitle, DialogContent, Dialog, Alert, Snackbar
  } from '@mui/material'
+import Link from 'next/link';
 import { ArrowLineRight, ArrowLineLeft, X } from 'phosphor-react';
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router';
+
+
 
 interface LogoutDialogProps{
     showDialog: boolean;
@@ -13,6 +17,9 @@ interface LogoutDialogProps{
 
 export function LogoutDialog(props: LogoutDialogProps){
     const {showDialog, setShowDialog, closeDialog, disconnect, ...other} = props;
+    
+
+
     return(
         showDialog === true?
         
@@ -37,6 +44,8 @@ export function LogoutDialog(props: LogoutDialogProps){
 
 
 export default function Layout(){
+    const router = useRouter();
+
     const [drawerStatus, setDrawerStatus] = useState(false);
     const [auth, setAuth] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -63,6 +72,7 @@ export default function Layout(){
     setAnchorEl(null);
     setAuth(false);
     setShowDialog(false);
+    router.push("/")
     }
 
     const handleOpenLogoutDialog= ()=>{
@@ -75,11 +85,18 @@ export default function Layout(){
     }
 
     const handleDrawerUse = (event:string)=>{
-    auth? 
-        null
-        :
-        setSnackbarStatus(true)
+        console.log(event)
+        if(auth) {
+            if(event === "profile") router.push('/users/userCreate');
+            if(event === "vacancy") router.push('/vacancy/VacancyList');
+            if(event === "tips") router.push('/misc/Advices');
+            if(event === "newVacancy") router.push('/vacancy/VacancyRegister');
+            if(event === "userManage") router.push('/users/AdminPanel');
+        }else{
+            setSnackbarStatus(true)
+        }
     }
+
     return (
         <>
         <Box sx={{ flexGrow: 1 }}>
@@ -107,22 +124,22 @@ export default function Layout(){
                                             </Button>
                                         </Grid>
                                         <Grid>
-                                            <Button onClick={()=>handleDrawerUse('vacancy')} name='vacancy'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
+                                            <Button  onClick={()=>handleDrawerUse('vacancy')} name='vacancy'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
                                                 Vagas
                                             </Button>
                                         </Grid>
                                             <Grid>
-                                            <Button onClick={()=>handleDrawerUse('tips')} name='tips'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
+                                            <Button  onClick={()=>handleDrawerUse('tips')} name='tips'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
                                                 Conselhos
                                             </Button>
                                         </Grid>
                                             <Grid>
-                                            <Button onClick={()=>handleDrawerUse('newVacancy')} name='newVacancy'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
+                                            <Button  onClick={()=>handleDrawerUse('newVacancy')} name='newVacancy'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
                                                 Cadastrar vagas
                                             </Button>
                                         </Grid>
                                             <Grid>
-                                            <Button onClick={()=>handleDrawerUse('userManage')} name='userManage'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
+                                            <Button  onClick={()=>handleDrawerUse('userManage')} name='userManage'size='large' variant="outlined" className='w-52 mt-2 space-x-2 border rounded-lg p-2 m-3 border-EtecGrayText hover:border-zinc-800  hover:bg-DefaultHoverBoldEtec text-base text-EtecLightGray hover:text-white'>
                                                 Gerenciar usuários
                                             </Button>
                                         </Grid>

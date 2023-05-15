@@ -20,7 +20,6 @@ import { api } from "@/lib/axios";
     updated_At: string;
     confidencial_salario: number;
     confidencial_nome: number;
-    Empresas: {nome_fantasia: string};
 }
 
 interface VacancyInfoProps{
@@ -141,7 +140,7 @@ export default function Vacancy( ) {
                                         }
                                     </Grid>
                                     <Grid item className="p-2 mx-2">
-                                        {vaga.confidencial_nome === 0?
+                                        {/* {vaga.confidencial_nome === 0?
                                         <Tooltip arrow title={"Empresa: "+vaga?.Empresas?.nome_fantasia} className='mt-1.5'>
                                             <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
@@ -149,7 +148,7 @@ export default function Vacancy( ) {
                                         <Tooltip arrow title="Empresa Confidencial" className='mt-1.5'>
                                         <Buildings size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"/>
                                         </Tooltip>
-                                        }
+                                        } */}
                                     </Grid>
                                 </Grid>
                                     <Divider/>

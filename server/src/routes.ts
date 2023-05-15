@@ -78,7 +78,7 @@ export async function appRoute(app: FastifyInstance){
           where: {},
         };
       
-        if (nome) conditions.where={nome: { contains: nome }}
+        if (nome !== "") conditions.where={nome: { contains: nome }}
 
         if (tipo !== null && !isNaN(tipo) && tipo >= 0 && tipo <= 3) {
           conditions.where.tipo = tipo;

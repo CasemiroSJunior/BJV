@@ -25,7 +25,6 @@ interface Users {
   status: number,
   rm?: number | null,
   cnpj?: string,
-  nome_fantasia?: string,
   senha: string | null,
   ensinoMedio?: number | string,
   cursoTecnico?: number | string
@@ -499,9 +498,9 @@ export default function Register() {
                   <Grid item xs={12} md={6} className="mt-2" >
                     <TextField
                       variant="outlined"
-                      value={userData.nome_fantasia}
+                      value={userData.nome}
                       onChange={handleInputData}
-                      name="nome_fantasia"
+                      name="nome"
                       label="Nome Fantasia"
                       fullWidth
                     />
