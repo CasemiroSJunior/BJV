@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { 
-    Avatar, Grid, Paper, Typography
+    Avatar, Dialog, Grid, Paper, Typography
  } from "@mui/material";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
@@ -11,31 +11,70 @@ import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
 import { Pencil, Trash } from 'phosphor-react';
 
 interface cursoTecnico {
-    curso: Array<{
-      id: number,
-      nome: string,
-      status: number,
-      duracao?: number | undefined,
-      periodo?: string | undefined,
-    }>
+    id: number,
+    nome: string,
+    status: number,
+    duracao?: number | undefined,
+    periodo?: string | undefined,
   };
   
   interface ensinoMedio {
-    curso: Array<{
-      id: number,
-      nome: string,
-      status: number,
-      duracao?: number | undefined,
-      periodo?: string | undefined,
-    }>
+    id: number,
+    nome: string,
+    status: number,
+    duracao?: number | undefined,
+    periodo?: string | undefined,
   };
+
+  interface userProps {
+        id:number,
+        nome:string,
+        tipo:number,
+        email: string,
+        status: number,
+        Alunos:[{
+            rm: number,
+            cpf:string
+            technical: string,
+            highschool:string,
+            curso_tecnico_Id: number,
+            curso_ensino_medio_Id: number,
+        }],
+        Empresas:[{
+            cnpj:string
+        }],
+        Funcionarios:[{
+            cpf:string
+        }],
+  }
+
+  interface filterQueryProps{
+    id: number,
+    tipo: string,
+    nome: string,
+    cpf: string,
+    email: string,
+    rm: string,
+    status: string,
+    technical: string,
+    highschool: string,
+  }
+
+  function userDialog(){
+
+    return (
+        <Dialog>
+            
+        </Dialog>
+    )
+  }
 
 
 export default function AdminPanel() {
     
-    const [userList, setUserList] = useState([])
-    const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio>()
-    const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico>()
+    const [userList, setUserList] = useState<filterQueryProps[]>([])
+    const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio[]>()
+    const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico[]>()
 
     const handleGetData = async()=>{
         await api.get('/cursos/tecnico').then((response)=> {setEnsinoTecnicoList(response.data.curso)})
@@ -49,7 +88,6 @@ export default function AdminPanel() {
     const DATA_QUERY= {
         id: null,
         tipo: null,
-        foto: null,
         email: null,
         rm: null,
         status: 0,
@@ -64,10 +102,10 @@ export default function AdminPanel() {
         console.log(ensinoMedioList)
         
         api.get('/users/type//name//status//technical//highschool/').then(response=> { 
-            let userTypeName;
-            let CNPJCPF
-            let LIST = [];
-            response.data.userList.map( (user:any[])=>{
+            let userTypeName:string;
+            let CNPJCPF:string;
+            let LIST: filterQueryProps[] = [];
+            response.data.userList.map( (user:userProps)=>{
                 if (user.tipo === USER_TYPE.FUNCIONARIO) {
                     userTypeName="Funcionário"
                     CNPJCPF=user.Funcionarios[0].cpf
@@ -82,7 +120,7 @@ export default function AdminPanel() {
                     CNPJCPF=user.Empresas[0].cnpj
                 }
                 
-                const FILTER_QUERY= {... DATA_QUERY,
+                const FILTER_QUERY:any= {... DATA_QUERY,
                     id: user.id,
                     tipo: userTypeName,
                     nome: user.nome,
@@ -90,9 +128,8 @@ export default function AdminPanel() {
                     email: user.email,
                     rm: user.Alunos[0]?.rm !== undefined? user.Alunos[0].rm : "",
                     status: user.status === 0? "Inativo": "Ativo",
-                    technical: ensinoTecnicoList?.filter(e=> e.id === user.Alunos[0]?.curso_tecnico_Id)[0]?.nome,
-                    highschool: ensinoMedioList?.filter(e=> e.id === user.Alunos[0]?.curso_ensino_medio_Id)[0]?.nome,
-                    foto: user.foto
+                    technical: ensinoTecnicoList?.filter((e:{id: number})=> e.id === user.Alunos[0]?.curso_tecnico_Id)[0]?.nome,
+                    highschool: ensinoMedioList?.filter((e:{id: number})=> e.id === user.Alunos[0]?.curso_ensino_medio_Id)[0]?.nome,
                 }
                 
                 LIST.push(FILTER_QUERY)
@@ -102,13 +139,9 @@ export default function AdminPanel() {
         
     },[ensinoMedioList, ensinoTecnicoList])
 
-
-    
-
     const columns = [
         {field: "id", headerName:"ID", width:80},
         {field: "tipo", headerName:"Tipo", width:100},
-        {field: "foto", headerName:"", width:60, sortable:false, renderCell:(params:string)=><Avatar onClick={()=>console.log( params )} src={params.row.foto} />},
         {field: "nome", headerName:"Nome", width:170},
         {field: "cpf", headerName:"CPF/CNPJ", sortable:false,width:150},
         {field: "email", headerName:"E-Mail", width:220},
@@ -125,9 +158,6 @@ export default function AdminPanel() {
             ]
           }
     ]
-
-    const [users, setUsers] = useState([])
-    const [pageSize, setPageSize] = useState(5)
     return (
         <>
             <Layout />
@@ -137,7 +167,7 @@ export default function AdminPanel() {
                 className="mb-24 mt-12"
             >
                 <Paper className="bg-white w-full">
-                    <TableComponent rows={userList} columns={columns} title='Gerenciar Usuários' data={userList} />
+                    <TableComponent rows={userList} columns={columns} title='Gerenciar Usuários' />
                 </Paper>
             </Grid>
             <LayoutBottom />

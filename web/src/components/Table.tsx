@@ -4,15 +4,12 @@ import type {} from '@mui/x-data-grid/themeAugmentation';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 
 interface TableComponentProps {
-  data: string[] | number[];
   rows: any[];
   title: string;
   columns: any[];
 }
 
-const TableComponent: React.FC<TableComponentProps> = ({ data, rows, title, columns}) => {
-
-  console.log(rows)
+const TableComponent: React.FC<TableComponentProps> = ({ rows, title, columns}) => {
   
   return (
     <Box>
@@ -30,7 +27,6 @@ const TableComponent: React.FC<TableComponentProps> = ({ data, rows, title, colu
         getRowId={rows=>"ID:"+rows.id}
         slots={{ toolbar: GridToolbar}}
       />
-      
     </Box>
   );
 };
