@@ -1,32 +1,78 @@
 import { Box, Button, Checkbox, Chip, FormControl, FormControlLabel, Grid, InputAdornment, InputLabel, MenuItem, OutlinedInput, Paper, Select, Stack, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import Layout from "../layout";
-import LayoutBottom from "../layoutBottom";
+import { useRouter } from 'next/router';
+import Layout from "../../../layout";
+import LayoutBottom from "../../../layoutBottom";
 import { REMUNERATION, STATUS, VACANCY_TYPE } from "@/config/constants";
 import { LocalizationProvider, DesktopDatePicker  } from "@mui/x-date-pickers";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import { api } from "@/lib/axios";
 
+interface newVacancyProps{
+    titulo: string | null;
+    descricao: string | null ;
+    salario: number | null ;
+    tipo: number | null ;
+    remunerado: number;
+    confidencial_nome: number ;
+    confidencial_salario: number;
+    status: number;
+    empresasUsersId: number;
+    data_inicio: string | null;
+    data_termino: string | null;
+}
+
+
 export default function VacancyRegister() {
-    
+    const router = useRouter();
+
+    const [vacancyData, setVacancyData] = useState<newVacancyProps>()
+
     const NEW_VACANCY = {
-        titulo : null,
-        descricao : null,
-        salario: 0,
-        tipo: VACANCY_TYPE.ESTAGIO,
-        remunerado: STATUS.ATIVO,
-        confidencial_nome: STATUS.INATIVO,
-        confidencial_salario: STATUS.INATIVO,
-        status: STATUS.ATIVO,
-        empresasUsersId: 4,
-        data_inicio: null,
-        data_termino: null,
+        titulo : vacancyData?.titulo? vacancyData?.titulo : null,
+        descricao : vacancyData?.descricao? vacancyData?.descricao : null,
+        salario: vacancyData?.salario? vacancyData?.salario : 0,
+        tipo: vacancyData?.tipo? vacancyData?.tipo : VACANCY_TYPE.ESTAGIO,
+        remunerado: vacancyData?.remunerado? vacancyData?.remunerado : STATUS.ATIVO,
+        confidencial_nome: vacancyData?.confidencial_nome? vacancyData?.confidencial_nome: STATUS.INATIVO,
+        confidencial_salario: vacancyData?.confidencial_salario? vacancyData?.confidencial_salario :STATUS.INATIVO,
+        status: vacancyData?.status? vacancyData?.status :  STATUS.ATIVO,
+        empresasUsersId: vacancyData?.empresasUsersId? vacancyData?.empresasUsersId : 4 ,
+        data_inicio: vacancyData?.data_inicio? vacancyData?.data_inicio : null,
+        data_termino: vacancyData?.data_termino? vacancyData?.data_termino : null,
     };
     
-    const [newVacancy, setNewVacancy] = useState(NEW_VACANCY);
+    const [newVacancy, setNewVacancy] = useState<newVacancyProps>(NEW_VACANCY);
     const [startDate, setStartDate] = useState<Dayjs | null>(dayjs(new Date()),);
     const [finalDate, setFinalDate] = useState<Dayjs | null>(dayjs(new Date()),);
+    const [userId, setUserId] = useState<number | null | undefined | string[] | string>(null)
+    const [vacancyId, setVacancyId] = useState<number | null | undefined | string[] | string>(null)
+
+    useEffect(()=>{
+        setUserId(router.query.userId)
+        setVacancyId(router.query.vacancyId)
+        console.log(router.query.userId)
+        console.log(router.query.vacancyId)
+    },[router.query.vacancyId, router.query.userId])
+
+
+    useEffect(()=>{
+        const fetchData= (async()=>{
+            try{
+                await api.get(`/vacancy/userId/${userId}/vacancyId/${vacancyId}`).then(response => {setVacancyData(response.data.vacancyInfo[0])})
+            }catch(err){
+                router.push("/vacancy/VacancyList")
+            }
+        })
+        if (userId != undefined && vacancyId != undefined)
+            fetchData()
+            setNewVacancy(NEW_VACANCY);
+    },[userId, vacancyId])
+    
+    useEffect(()=>{
+        setNewVacancy(NEW_VACANCY)
+    },[vacancyData])
 
     const handleCreateVacancy =async()=>{
         try{
@@ -57,7 +103,8 @@ export default function VacancyRegister() {
     const handleInput = (event: { target: { name: string; value: any; }; }) =>{
         let { name, value } = event.target;
         let TempVacancy=({...newVacancy, [name]: value})
-        console.log(TempVacancy)
+        console.log(vacancyData)
+        console.log(NEW_VACANCY)
         setNewVacancy(TempVacancy)
     }
 
@@ -68,8 +115,10 @@ export default function VacancyRegister() {
         setFinalDate(date)
     }
 
+    
+
     return (
-        <>
+        <> 
             <Layout />
                 <Grid container className="mb-24 mt-12 justify-center">
                     <Paper className="bg-white w-3/6 justify-center p-2" >
@@ -175,7 +224,6 @@ export default function VacancyRegister() {
                                                 views={["year", "month", "day"]}
                                                 format="DD/MM/YYYY"
                                                 onChange={handleChangeStartDate}
-                                                renderInput={(params: any) => <TextField {...params} />}
                                             />
                                         </Stack>
                                     </LocalizationProvider>
@@ -191,7 +239,6 @@ export default function VacancyRegister() {
                                                 views={["year", "month", "day"]}
                                                 format="DD/MM/YYYY"
                                                 onChange={handleChangeFinalDate}
-                                                renderInput={(params: any) => <TextField {...params} />}
                                             />
                                         </Stack>
                                     </LocalizationProvider>

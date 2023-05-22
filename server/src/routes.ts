@@ -9,7 +9,12 @@ interface GetUsersParams {
     status: number;
     cursoTecnico: number;
     ensinoMedio: number;
-  }
+}
+
+interface GetVacancyParams {
+    vacancyId: number;
+    userId: number;
+}
 
 export async function appRoute(app: FastifyInstance){
     app.get('/vacancies', async () => {
@@ -49,6 +54,45 @@ export async function appRoute(app: FastifyInstance){
 
         return { curso }
     })
+
+    app.get('/vacancy/userId/:userId/vacancyId/:vacancyId', async(request: FastifyRequest<{ Params: GetVacancyParams }>, reply)=>{
+        const paramsBody = z.object({
+            userId: z.number().nullable(),
+            vacancyId: z.number().nullable()
+
+        })
+
+        const convertedValues = { 
+            userId: request.params.userId ? Number(request.params.userId) : null,
+            vacancyId: request.params.vacancyId ? Number(request.params.vacancyId) : null
+        }
+
+        const { userId, vacancyId } = paramsBody.parse(convertedValues);
+
+        let conditions = {}
+
+        if (userId !== null && vacancyId !== null){
+            conditions = {
+                where: {
+                id: vacancyId,
+                empresasUsersId: userId
+                },
+                include:{
+                    Empresas: {
+                        select:{
+                            usersId: true,
+                        }
+                    }
+                }
+            }
+        }
+
+        const vacancyInfo = await prisma.vagas.findMany(conditions)
+
+        return reply.status(200).send({vacancyInfo})
+        }
+    )
+
 
     app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async (request: FastifyRequest<{ Params: GetUsersParams }>, reply) => {
         const paramsBody = z.object({
