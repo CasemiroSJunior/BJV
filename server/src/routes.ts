@@ -93,6 +93,66 @@ export async function appRoute(app: FastifyInstance){
         }
     )
 
+    app.put('/vacancy/update/userId/:userId/vacancyId/:vacancyId', async(request: FastifyRequest<{ Params: GetVacancyParams }>, reply)=>{
+        const paramsBody = z.object({
+            userId: z.number(),
+            vacancyId: z.number()
+
+        })
+
+        const convertedValues = { 
+            userId:  Number(request.params.userId),
+            vacancyId: Number(request.params.vacancyId),
+        }
+
+        const { userId, vacancyId } = paramsBody.parse(convertedValues);
+
+        const vacancyBody = z.object({
+            titulo : z.string(),
+            descricao : z.string(),
+            salario: z.number(),
+            tipo: z.number(),
+            remunerado: z.number(),
+            confidencial_nome: z.number(),
+            confidencial_salario: z.number(),
+            status: z.number(),
+            empresasUsersId: z.number(),
+            data_inicio: z.string(),
+            data_termino: z.string(),
+        })
+
+        const {
+            confidencial_nome,
+            confidencial_salario,
+            data_inicio,
+            data_termino,
+            descricao,
+            empresasUsersId,
+            remunerado,
+            salario,
+            status,
+            tipo,
+            titulo
+        } = vacancyBody.parse(request.body)
+
+
+        await prisma.vagas.update({
+            where:{id:vacancyId}, 
+            data:{
+                data_inicio: new Date(data_inicio),
+                data_termino: new Date(data_termino),
+                titulo: titulo,
+                descricao: descricao,
+                empresasUsersId: empresasUsersId,
+                remunerado: remunerado,
+                salario: salario,
+                status: status,
+                tipo: tipo,
+                confidencial_nome: confidencial_nome,
+                confidencial_salario: confidencial_salario,
+            }
+        })
+    })
 
     app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async (request: FastifyRequest<{ Params: GetUsersParams }>, reply) => {
         const paramsBody = z.object({
