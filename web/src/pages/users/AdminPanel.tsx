@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { 
-    Avatar, Dialog, Grid, Paper, Typography
+    Avatar, Dialog, DialogTitle, Grid, Paper, Typography
  } from "@mui/material";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
@@ -60,14 +60,39 @@ interface cursoTecnico {
     highschool: string,
   }
 
-  function userDialog(){
+interface userProps{
+    showDialog: boolean;
+    setShowDialog: (showDialog: boolean)=> void;
+    closeDialog: ()=> void;
+    userData: any[]
+}
 
-    return (
-        <Dialog>
-            
-        </Dialog>
-    )
-  }
+export function UserDialog(props:userProps){
+    const {showDialog, setShowDialog, closeDialog, userData, type, ...other} = props;
+    const [selectedUserInfo, setSelectedUserInfo] = useState()
+
+useEffect(()=>{
+    if (userData !== undefined){
+        api.get(`/users/getInfo/${userData}`).then(res=>{
+            console.log(res)
+            setSelectedUserInfo(res.data)
+        })
+    }
+},[showDialog])
+
+return (
+    <Dialog open={showDialog} fullWidth onClose={closeDialog}>
+        <DialogTitle> Editar Usuário </DialogTitle>
+        <Paper>
+            <Grid container>
+                <Grid item xs={12} md={6}>
+
+                </Grid>
+            </Grid>
+        </Paper>
+    </Dialog>
+)
+};
 
 
 export default function AdminPanel() {
@@ -75,6 +100,9 @@ export default function AdminPanel() {
     const [userList, setUserList] = useState<filterQueryProps[]>([])
     const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio[]>()
     const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico[]>()
+    const [selectedUserId, setSelectedUserId] = useState()
+    const [selectedUserType, setSelectedUserType] = useState()
+    const [showDialog, setShowDialog ] = useState<boolean>(false);
 
     const handleGetData = async()=>{
         await api.get('/cursos/tecnico').then((response)=> {setEnsinoTecnicoList(response.data.curso)})
@@ -96,11 +124,17 @@ export default function AdminPanel() {
 
     }
 
+    const handleSetUserInfo=(params:any)=>{
+        setSelectedUserId(params.row.id)
+        setShowDialog(true)
+        setSelectedUserType(params.row.tipo)
+    }
+
+    const handleCloseDialog= ()=>{
+        setShowDialog(false)
+    }
+
     useEffect( ()=>{
-        console.log("Curso")
-        console.log(ensinoTecnicoList)
-        console.log(ensinoMedioList)
-        
         api.get('/users/type//name//status//technical//highschool/').then(response=> { 
             let userTypeName:string;
             let CNPJCPF:string;
@@ -153,7 +187,7 @@ export default function AdminPanel() {
             field: 'actions',
             type: 'actions',
             getActions: (params: GridRowParams) => [
-              <GridActionsCellItem icon={<Pencil size={24}/>} onClick={()=>console.log(params)} label="Editar" />,
+              <GridActionsCellItem icon={<Pencil size={24}/>} onClick={()=>handleSetUserInfo(params)} label="Editar" />,
               <GridActionsCellItem icon={<Trash/>} onClick={()=>console.log("Delete Action")} label="Apagar" showInMenu />,
             ]
           }
@@ -170,6 +204,12 @@ export default function AdminPanel() {
                     <TableComponent rows={userList} columns={columns} title='Gerenciar Usuários' />
                 </Paper>
             </Grid>
+            <UserDialog
+                showDialog={showDialog}
+                closeDialog={handleCloseDialog}
+                userData={selectedUserId}
+                type={selectedUserType}
+            />
             <LayoutBottom />
         </>
     )

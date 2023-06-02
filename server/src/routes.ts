@@ -343,6 +343,22 @@ export async function appRoute(app: FastifyInstance){
 
     })
 
+    app.get(`/users/getInfo/:userId`,async(request: FastifyRequest<{ Params: {userId: number} }>, reply)=>{
+
+        const id = z.number().parse(Number(request.params.userId))
+        
+        const userData = await prisma.users.findUnique({
+            where: {id: id},
+            include:{
+                Alunos: true,
+                Empresas: true,
+                Funcionarios: true,
+            }
+        })
+
+        return reply.status(200).send(userData)
+    })
+
     app.post(`/vacancy/create`, async (request)=>{
 
         const vacancyBody = z.object({
