@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { 
-    Avatar, Dialog, DialogTitle, Grid, Paper, Typography
+    Avatar, Dialog, DialogTitle, Grid, Paper, TextField, Typography
  } from "@mui/material";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
@@ -8,7 +8,7 @@ import TableComponent from '@/components/Table';
 import { api } from '@/lib/axios';
 import { USER_TYPE } from '@/config/constants';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { Pencil, Trash } from 'phosphor-react';
+import { NotePencil, Pencil, Trash } from 'phosphor-react';
 
 interface cursoTecnico {
     id: number,
@@ -60,39 +60,78 @@ interface cursoTecnico {
     highschool: string,
   }
 
-interface userProps{
-    showDialog: boolean;
-    setShowDialog: (showDialog: boolean)=> void;
-    closeDialog: ()=> void;
-    userData: any[]
-}
-
-export function UserDialog(props:userProps){
-    const {showDialog, setShowDialog, closeDialog, userData, type, ...other} = props;
-    const [selectedUserInfo, setSelectedUserInfo] = useState()
-
-useEffect(()=>{
-    if (userData !== undefined){
-        api.get(`/users/getInfo/${userData}`).then(res=>{
-            console.log(res)
-            setSelectedUserInfo(res.data)
-        })
+    interface userProps{
+        showDialog: boolean;
+        setShowDialog: (showDialog: boolean)=> void;
+        closeDialog: ()=> void;
+        userData: any[];
+        type?: string;
     }
-},[showDialog])
 
-return (
-    <Dialog open={showDialog} fullWidth onClose={closeDialog}>
-        <DialogTitle> Editar Usuário </DialogTitle>
-        <Paper>
-            <Grid container>
-                <Grid item xs={12} md={6}>
+    export function UserDialog(props:userProps){
+        const {showDialog, setShowDialog, closeDialog, userData, type, ...other} = props;
+        const [selectedUserInfo, setSelectedUserInfo] = useState()
 
+        const DATA_INFO:any= {
+            id: null,
+            tipo: null,
+            nome: null,
+            cpf: null,
+            cnpj:null,
+            email: null,
+            rm:null,
+            status: null,
+            technical: null,
+            highschool: null,
+            data_nascimento:null,
+            celular:null,
+            telefone:null,
+        }
+
+    useEffect(()=>{
+        if (userData !== undefined){
+            api.get(`/users/getInfo/${userData}`).then(res=>{
+                let dataTemp = {...DATA_INFO,
+                    id: res.data?.id,
+                    nome: res.data?.nome,
+                    cpf: res.data?.Alunos[0]?.cpf? res.data?.Alunos[0]?.cpf: res.data?.Funcionarios[0]?.cpf,
+                    cnpj: res.data?.Empresas[0]?.cnpj,
+                    email: res.data?.email,
+                    rm:res.data?.Alunos[0]?.rm,
+                    status: res.data?.status,
+                    technical: res.data?.Alunos[0]?.curso_tecnico_Id,
+                    highschool: res.data?.Alunos[0]?.curso_ensino_medio_Id,
+                    data_nascimento: res.data?.Alunos[0]?.data_nascimento,
+                    celular:res.data?.celular,
+                    telefone: res.data?.Alunos[0]?.telefone
+                }
+                setSelectedUserInfo(dataTemp)
+            })
+        }
+    },[showDialog])
+
+    const handleInput = (()=>{
+        
+    })
+
+    return (
+        <Dialog open={showDialog} fullWidth onClose={closeDialog}>
+            <DialogTitle> Editar Usuário </DialogTitle>
+            <Paper>
+                <Grid justifyContent={'center'} alignContent={'center'} container>
+                    <Grid item xs={12} md={6}>
+                        <TextField 
+                            onChange={()=>console.log(selectedUserInfo)}
+                            label="Nome"
+                            name="nome"
+                            value={selectedUserInfo?.nome}
+                        />
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Paper>
-    </Dialog>
-)
-};
+            </Paper>
+        </Dialog>
+    )
+    };
 
 
 export default function AdminPanel() {
