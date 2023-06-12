@@ -188,7 +188,7 @@ export default function Register() {
 
   const handleDateOfBirth = (date:Dayjs | null)=>{
     setDataNascimento(date)
-}
+  }
 
   const handleSubmit = async (e:any) => {
     e.preventDefault();

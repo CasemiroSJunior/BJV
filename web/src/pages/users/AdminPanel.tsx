@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { 
-    Avatar, Dialog, DialogTitle, Grid, Paper, TextField, Typography
+    Avatar, Button, Chip, Container, Dialog, DialogTitle, Divider, FormControlLabel, Grid, Paper, Stack, Switch, TextField, Tooltip, Typography
  } from "@mui/material";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
 import TableComponent from '@/components/Table';
 import { api } from '@/lib/axios';
-import { USER_TYPE } from '@/config/constants';
+import { STATUS, USER_TYPE } from '@/config/constants';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { NotePencil, Pencil, Trash } from 'phosphor-react';
+import { CheckCircle, NotePencil, Pencil, PencilSimpleLine, Trash, XCircle } from 'phosphor-react';
+import * as Helper from "../../utils/Helper";
+import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
 
 interface cursoTecnico {
     id: number,
@@ -63,14 +67,15 @@ interface cursoTecnico {
     interface userProps{
         showDialog: boolean;
         setShowDialog: (showDialog: boolean)=> void;
-        closeDialog: ()=> void;
         userData: any[];
         type?: string;
     }
 
     export function UserDialog(props:userProps){
-        const {showDialog, setShowDialog, closeDialog, userData, type, ...other} = props;
+        const {showDialog, setShowDialog, userData, type, ...other} = props;
         const [selectedUserInfo, setSelectedUserInfo] = useState()
+        const [dataNascimento, setDataNascimento] = useState<Dayjs | null>();
+        /* const [editEnabled, setEditEnabled] = useState(false) */
 
         const DATA_INFO:any= {
             id: null,
@@ -105,30 +110,155 @@ interface cursoTecnico {
                     celular:res.data?.celular,
                     telefone: res.data?.Alunos[0]?.telefone
                 }
+                console.log(dataTemp)
                 setSelectedUserInfo(dataTemp)
+                setDataNascimento(dayjs(dataTemp.data_nascimento))
             })
         }
     },[showDialog])
 
-    const handleInput = (()=>{
-        
+    const handleCloseDialog= ()=>{
+        setShowDialog(false)
+        setSelectedUserInfo(DATA_INFO)
+        /* setEditEnabled(false) */
+    }
+
+    const handleDateOfBirth = (date:Dayjs | null)=>{
+        setDataNascimento(date)
+        let dataTemp = {
+            ...selectedUserInfo,
+            data_nascimento: date
+        }
+        setSelectedUserInfo(dataTemp)
+    }
+
+    /* const handleEnableEdit = ()=>{
+        setEditEnabled(!editEnabled)
+    } */
+
+    const handleInput = ((data)=>{
+        let { name, value } = data.target
+        console.log(type)
+        if (name === "cpf") (String(data.target.value).length) < 15? value = Helper.cpf(data.target.value) : value = selectedUserInfo.Alunos[0].cpf? selectedUserInfo.Alunos[0].cpf : selectedUserInfo.Funcionarios[0].cpf 
+        if (name === "cnpj") (String(data.target.value).length) < 19? value = Helper.cnpj(data.target.value) : value = selectedUserInfo.Empresas[0].cnpj
+        if (name === "celular") value = Helper.cell(data.target.value)
+        if (name === "telefone") value = Helper.tell(data.target.value)
+        if (name === "rm") (String(data.target.value).length) < 7?   data.target.value != 0? value = Number(Helper.numbersOnlyFilter(data.target.value)) : value = null : value = selectedUserInfo.Alunos[0].rm
+        if (name === "tipo") value = Number(data.target.value)
+        if (name === "status") value = Number(data.target.value)
+        if (name === 'nome') value = Helper.wordOnlyFilter(data.target.value)
+
+        let dataTemp = {
+            ...selectedUserInfo,
+            [name]: value
+        }
+        setSelectedUserInfo(dataTemp)
+        console.log(dataTemp)
     })
 
     return (
-        <Dialog open={showDialog} fullWidth onClose={closeDialog}>
-            <DialogTitle> Editar Usuário </DialogTitle>
-            <Paper>
-                <Grid justifyContent={'center'} alignContent={'center'} container>
-                    <Grid item xs={12} md={6}>
-                        <TextField 
-                            onChange={()=>console.log(selectedUserInfo)}
-                            label="Nome"
-                            name="nome"
-                            value={selectedUserInfo?.nome}
-                        />
+        <Dialog open={showDialog} fullWidth onClose={handleCloseDialog}>
+            <Container >
+                <DialogTitle className=' text-2xl text-center '> Editar Usuário </DialogTitle>
+                <Paper>
+                    {/* {editEnabled?
+                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-gray-500'>
+                            <Grid  item >
+                                <Typography className='text-white font-thin'>
+                                    Edição Habilitada
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+                                <Button className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-orange-500 hover:bg-orange-600'>
+                                    <PencilSimpleLine onClick={handleEnableEdit} color="white" weight='regular' size={20} />
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    :
+                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-gray-500'>
+                            <Grid  item >
+                                <Typography className='text-white font-thin'>
+                                    Habilitar Edição
+                                </Typography>
+                            </Grid>
+                            <Grid item>
+                                <Button className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-orange-500 hover:bg-orange-600'>
+                                    <PencilSimpleLine onClick={handleEnableEdit}  color="white" weight='regular' size={20} />
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    } */}
+                    <Divider />
+                    <Grid container spacing={2} alignItems={'center'} className='p-2'>
+                        <Grid item xs={12} md={4}>
+                            <TextField 
+                                onChange={handleInput}
+                                label="Nome"
+                                name="nome"
+                                value={selectedUserInfo?.nome}
+                            />
+                        </Grid>
+                        {selectedUserInfo?.cnpj == null?
+                        <Grid item xs={12} md={4}>
+                            <TextField 
+                                onChange={handleInput}
+                                label="CPF"
+                                name="cpf"
+                                value={selectedUserInfo?.cpf}
+                            />
+                        </Grid>
+                        :
+                        <Grid item xs={12} md={4}>
+                            <TextField 
+                                onChange={handleInput}
+                                label="CNPJ"
+                                name="cnpj"
+                                value={selectedUserInfo?.cnpj}
+                            />
+                        </Grid>
+                        }
+                        <Grid item xs={12} md={4} >
+                            <FormControlLabel
+                                control={<Switch color="primary" checked={selectedUserInfo?.status === STATUS.ATIVO}  />}
+                                label="Status"
+                                labelPlacement="top"
+                                name="status"
+                                onChange={()=>handleInput({target:{name:"status", value: selectedUserInfo?.status === STATUS.INATIVO? STATUS.ATIVO: STATUS.INATIVO}})}
+                            />
+                            <Tooltip 
+                                arrow 
+                                title={`O usuário está/será definido como: ${selectedUserInfo?.status === STATUS.INATIVO? "INATIVO": "ATIVO"}`}
+                                placement='top'
+                            >
+                                <Chip
+                                    label={selectedUserInfo?.status === STATUS.ATIVO? 
+                                        <CheckCircle size={30} color="#008700" weight='fill'/>
+                                        : 
+                                        <XCircle size={30} color='#cf0000' weight="fill"/>}
+                                    variant={"outlined"}
+                                />
+                            </Tooltip>
+                        </Grid>
+                        { (type === "Aluno" ) && (dataNascimento != null) &&
+                        <>
+                            <Grid item className="mt-2" xs={12} sm={4}>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <Stack >
+                                        <DesktopDatePicker
+                                            label="Data de Nascimento"
+                                            value={dataNascimento}
+                                            views={["year", "month", "day"]}
+                                            onChange={handleDateOfBirth}
+                                            format="DD/MM/YYYY"
+                                        />
+                                    </Stack>
+                                </LocalizationProvider>
+                            </Grid>
+                        </>
+                        }
                     </Grid>
-                </Grid>
-            </Paper>
+                </Paper>
+            </Container>
         </Dialog>
     )
     };
@@ -169,9 +299,6 @@ export default function AdminPanel() {
         setSelectedUserType(params.row.tipo)
     }
 
-    const handleCloseDialog= ()=>{
-        setShowDialog(false)
-    }
 
     useEffect( ()=>{
         api.get('/users/type//name//status//technical//highschool/').then(response=> { 
@@ -237,7 +364,7 @@ export default function AdminPanel() {
             <Grid 
                 justifyContent="center"
                 container
-                className="mb-24 mt-12"
+                className="mb-24 mt-12 p-10"
             >
                 <Paper className="bg-white w-full">
                     <TableComponent rows={userList} columns={columns} title='Gerenciar Usuários' />
@@ -245,7 +372,7 @@ export default function AdminPanel() {
             </Grid>
             <UserDialog
                 showDialog={showDialog}
-                closeDialog={handleCloseDialog}
+                setShowDialog={setShowDialog}
                 userData={selectedUserId}
                 type={selectedUserType}
             />
