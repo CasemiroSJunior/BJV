@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { 
+    Alert,
     Avatar, Button, Chip, Container, Dialog, DialogTitle, Divider, FormControlLabel, Grid, Paper, Stack, Switch, TextField, Tooltip, Typography
  } from "@mui/material";
 import Layout from "../layout";
@@ -263,6 +264,51 @@ interface cursoTecnico {
     )
     };
 
+export function DeleteDialog(props:userProps){
+    const {showDialog, setShowDialog, userData, ...other} = props;
+    const [userInfo, setUserInfo] = useState();
+    
+    useEffect(()=>{
+        if (userData !== undefined){
+            api.get(`/users/getInfo/${userData}`).then(res=>{
+                console.log(res)
+                setUserInfo(res.data)
+            })
+        }
+    },[showDialog])
+
+    const handleClose=(()=>{
+        setShowDialog(false)
+        setUserInfo([])
+    })
+
+    const handleDeleteUser=(async()=>{
+        console.log("bla")
+        const deleteUser = await api.delete(`/user/delete/${Number(userInfo?.id)}`)
+        alert(deleteUser.data)
+        setShowDialog(false)
+        setUserInfo([])
+    })
+
+    return(
+        userInfo != undefined &&
+        <Dialog open={showDialog} onClose={handleClose} fullWidth>
+            <Grid container justifyContent={'center'} className='p-2'>
+                <DialogTitle className='bg-EtecLightGray w-full text-center p-2'>Deseja Remover este usuário?</DialogTitle>
+                <Typography className='text-center text-3xl p-2'>Você está preste a excluir <Typography className='text-blue-500 text-3xl'>{userInfo?.nome}</Typography> Você tem certeza?</Typography>
+                <Grid container spacing={2} item xs={12} className='p-2'>
+                    <Grid item xs={6} className='text-center'>
+                        <Button className=' bg-red-700 hover:bg-red-600 text-white w-full'>Não, cancelar</Button>
+                    </Grid>
+                    <Grid item xs={6} className='text-center'>
+                        <Button onClick={handleDeleteUser} className='bg-green-700 hover:bg-green-600 text-white w-full '>Sim, desejo excluir {userInfo?.nome}</Button>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Dialog>
+    )
+}
+
 
 export default function AdminPanel() {
     
@@ -272,6 +318,7 @@ export default function AdminPanel() {
     const [selectedUserId, setSelectedUserId] = useState()
     const [selectedUserType, setSelectedUserType] = useState()
     const [showDialog, setShowDialog ] = useState<boolean>(false);
+    const [showDialogDelete, setShowDialogDelete ] = useState<boolean>(false);
 
     const handleGetData = async()=>{
         await api.get('/cursos/tecnico').then((response)=> {setEnsinoTecnicoList(response.data.curso)})
@@ -297,6 +344,11 @@ export default function AdminPanel() {
         setSelectedUserId(params.row.id)
         setShowDialog(true)
         setSelectedUserType(params.row.tipo)
+    }
+
+    const handleDeleteUser=(params:any)=>{
+        setShowDialogDelete(true)
+        setSelectedUserId(params.row.id)
     }
 
 
@@ -354,7 +406,7 @@ export default function AdminPanel() {
             type: 'actions',
             getActions: (params: GridRowParams) => [
               <GridActionsCellItem icon={<Pencil size={24}/>} onClick={()=>handleSetUserInfo(params)} label="Editar" />,
-              <GridActionsCellItem icon={<Trash/>} onClick={()=>console.log("Delete Action")} label="Apagar" showInMenu />,
+              <GridActionsCellItem icon={<Trash/>} onClick={()=>handleDeleteUser(params)} label="Apagar" showInMenu />,
             ]
           }
     ]
@@ -375,6 +427,11 @@ export default function AdminPanel() {
                 setShowDialog={setShowDialog}
                 userData={selectedUserId}
                 type={selectedUserType}
+            />
+            <DeleteDialog
+                showDialog={showDialogDelete}
+                setShowDialog={setShowDialogDelete}
+                userData={selectedUserId}
             />
             <LayoutBottom />
         </>

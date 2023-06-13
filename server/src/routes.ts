@@ -359,6 +359,31 @@ export async function appRoute(app: FastifyInstance){
         return reply.status(200).send(userData)
     })
 
+    app.delete(`/user/delete/:userId`,async(request: FastifyRequest<{ Params: {userId: number} }>, reply)=>{
+        const id = z.number().parse(Number(request.params.userId))
+        
+        try{
+            const userData = await prisma.users.findUnique({
+                where: {id: id},
+            })
+            console.log(userData)
+            if(userData){
+                try{
+                    await prisma.users.delete({
+                        where:{
+                            id: userData.id
+                        }
+                    })
+                    return "Usuário deletado com sucesso!"
+                }catch(err){
+                    return "ERRO: DU01- ERRO AO EXCLUIR USUÁRIO."
+                }
+            }
+        }catch(err){
+            return "ERRO: FUTD01- ERRO AO EXCLUIR USUÁRIO. USUÁRIO NÃO ENCONTRADO."
+        }
+    })
+
     app.post(`/vacancy/create`, async (request)=>{
 
         const vacancyBody = z.object({
