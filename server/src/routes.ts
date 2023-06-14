@@ -16,7 +16,66 @@ interface GetVacancyParams {
     userId: number;
 }
 
+
 export async function appRoute(app: FastifyInstance){
+    app.post('/auth/login',async(request, reply)=>{
+
+        const loginSchema = z.object({
+            email: z.string().email().nullable(),
+            senha: z.string(),
+            rm: z.number().nullable()
+        });
+
+        try{
+            const dataValidation = {
+                email: request.body.email == null? null : String(request.body.email),
+                senha: String(request.body.senha),
+                rm: request.body.rm == null? null : Number(request.body.rm)
+            }
+
+            console.log(dataValidation.email)
+            console.log(dataValidation.senha)
+            console.log(dataValidation.rm)
+
+            const { email, senha, rm } = loginSchema.parse(dataValidation);
+
+            let user = null;
+
+            if (email) {
+                user = await prisma.users.findUnique({ where: { email: email } });
+            }
+
+            if (rm && !user) {
+                user = await prisma.alunos.findUnique({ where:{rm:rm}, include:{ user:true}});
+            }
+
+            console.log(user)
+
+            if (!user) {
+                reply.code(401).send({ message: 'Usuário não encontrado.' });
+                return;
+            }
+
+            if(rm && user){
+                if (user.user.senha !== senha) {
+                    reply.code(401).send({ message: 'Senha incorreta.' });
+                    return;
+                }
+            }
+
+            if (!rm && (user.senha !== senha)) {
+                reply.code(401).send({ message: 'Senha incorreta.' });
+                return;
+            }
+            
+            reply.code(200).send({ message: 'Autenticação bem-sucedida.' });
+        }catch(error) {
+          console.error(error);
+          reply.code(500).send({ message: 'Ocorreu um erro durante a autenticação.' });
+        }
+
+    })
+    
     app.get('/vacancies', async () => {
         const vacancies = await prisma.vagas.findMany({
             include: {
@@ -360,22 +419,28 @@ export async function appRoute(app: FastifyInstance){
     })
 
     app.delete(`/user/delete/:userId`,async(request: FastifyRequest<{ Params: {userId: number} }>, reply)=>{
-        const id = z.number().parse(Number(request.params.userId))
+        const id = Number(request.params.userId)
         
         try{
             const userData = await prisma.users.findUnique({
                 where: {id: id},
             })
-            console.log(userData)
             if(userData){
+                await prisma.inscricoes_vaga.deleteMany({ where: { usersId: id } });
+                await prisma.vagas.deleteMany({ where: { empresasUsersId: id } });
+                await prisma.alunos.deleteMany({ where: { usersId: id } });
+                await prisma.empresas.deleteMany({ where: { usersId: id } });
+                await prisma.funcionarios.deleteMany({ where: { usersId: id } });
+
                 try{
                     await prisma.users.delete({
                         where:{
-                            id: userData.id
+                            id: id
                         }
                     })
                     return "Usuário deletado com sucesso!"
                 }catch(err){
+                    console.log(err)
                     return "ERRO: DU01- ERRO AO EXCLUIR USUÁRIO."
                 }
             }

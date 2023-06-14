@@ -20,7 +20,7 @@ model Users {
   senha   String
   nome    String?
   celular String?
-  email   String?
+  email   String  @unique
   foto    String?
   status  Int     @default(0)
 

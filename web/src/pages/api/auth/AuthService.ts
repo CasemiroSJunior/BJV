@@ -1,4 +1,4 @@
-import { Api } from '../axios-config';
+/* import { Api } from '../axios-config';
 
 interface IAuth {
     accessToken: String;
@@ -21,4 +21,4 @@ const auth = async (email: string, password: string): Promise<IAuth | Error>  =>
 };
 export const AuthService = {
     auth,
-}   
+}    */

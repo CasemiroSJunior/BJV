@@ -283,7 +283,6 @@ export function DeleteDialog(props:userProps){
     })
 
     const handleDeleteUser=(async()=>{
-        console.log("bla")
         const deleteUser = await api.delete(`/user/delete/${Number(userInfo?.id)}`)
         alert(deleteUser.data)
         setShowDialog(false)
@@ -295,10 +294,10 @@ export function DeleteDialog(props:userProps){
         <Dialog open={showDialog} onClose={handleClose} fullWidth>
             <Grid container justifyContent={'center'} className='p-2'>
                 <DialogTitle className='bg-EtecLightGray w-full text-center p-2'>Deseja Remover este usuário?</DialogTitle>
-                <Typography className='text-center text-3xl p-2'>Você está preste a excluir <Typography className='text-blue-500 text-3xl'>{userInfo?.nome}</Typography> Você tem certeza?</Typography>
+                <Typography className='text-center text-lg p-2'>Você está preste a excluir <Typography className='text-blue-500 text-lg'>{userInfo?.nome}</Typography> você estará excluindo todos os registros que esse usuário possuí. Você tem certeza?</Typography>
                 <Grid container spacing={2} item xs={12} className='p-2'>
                     <Grid item xs={6} className='text-center'>
-                        <Button className=' bg-red-700 hover:bg-red-600 text-white w-full'>Não, cancelar</Button>
+                        <Button onClick={handleClose} className=' bg-red-700 hover:bg-red-600 text-white w-full'>Não, cancelar</Button>
                     </Grid>
                     <Grid item xs={6} className='text-center'>
                         <Button onClick={handleDeleteUser} className='bg-green-700 hover:bg-green-600 text-white w-full '>Sim, desejo excluir {userInfo?.nome}</Button>

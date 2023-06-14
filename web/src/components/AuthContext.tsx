@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+/* import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { AuthService } from '../pages/api/auth/authService';
 
 
@@ -48,4 +48,4 @@ export default function AuthProvider ({ children } : IAuthContextProps){
     );
 };
 
-export const useAuthContext = () => useContext(AuthContext);
+export const useAuthContext = () => useContext(AuthContext); */
