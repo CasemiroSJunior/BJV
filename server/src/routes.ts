@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest } from "fastify"
 import { prisma } from "./lib/prisma"
 import { z } from 'zod'
 import dayjs from 'dayjs'
+import { comparePasswords, hashPassword } from "./auth";
 
 interface GetUsersParams {
     tipo: number;
@@ -49,26 +50,26 @@ export async function appRoute(app: FastifyInstance){
                 user = await prisma.alunos.findUnique({ where:{rm:rm}, include:{ user:true}});
             }
 
-            console.log(user)
-
             if (!user) {
                 reply.code(401).send({ message: 'Usuário não encontrado.' });
                 return;
             }
 
+            const isPasswordMatching = await comparePasswords(senha, rm? user.user.senha : user.senha)
+            
             if(rm && user){
-                if (user.user.senha !== senha) {
+                if (!isPasswordMatching) {
                     reply.code(401).send({ message: 'Senha incorreta.' });
                     return;
                 }
             }
 
-            if (!rm && (user.senha !== senha)) {
+            if (!rm && (!isPasswordMatching)) {
                 reply.code(401).send({ message: 'Senha incorreta.' });
                 return;
             }
             
-            reply.code(200).send({ message: 'Autenticação bem-sucedida.' });
+            reply.code(200).send({ message: 'Login bem-sucedido.' });
         }catch(error) {
           console.error(error);
           reply.code(500).send({ message: 'Ocorreu um erro durante a autenticação.' });
@@ -277,10 +278,12 @@ export async function appRoute(app: FastifyInstance){
         })
 
         const { senha, tipo, cpf, celular, email, nome, status} = createUserBody.parse(request.body)
+
+        const hashedPassword = await hashPassword(senha);
         
         const newEmployee = await prisma.users.create({
             data:{
-                senha: senha,
+                senha: hashedPassword,
                 tipo: tipo,
                 email: email,
                 nome: nome,
@@ -315,13 +318,15 @@ export async function appRoute(app: FastifyInstance){
 
         const { senha, tipo, cpf, celular, email, nome, data_nascimento, rm,
             ensinoMedio, cursoTecnico, telefone, status } = createStudentBody.parse(request.body)
+
+        const hashedPassword = await hashPassword(senha);
             
         const isoDate = data_nascimento
         const today = dayjs().startOf('day').toDate()
 
         const newStudent = await prisma.users.create({
             data:{
-                senha: senha,
+                senha: hashedPassword,
                 tipo: tipo,
                 created_At:today,
                 updated_At:today,
@@ -362,9 +367,11 @@ export async function appRoute(app: FastifyInstance){
 
         const {celular, cnpj, email, nome, senha, telefone, tipo, status } = newCompanyBody.parse(request.body)
 
+        const hashedPassword = await hashPassword(senha);
+
         const newCompany = await prisma.users.create({
             data:{
-                senha: senha,
+                senha: hashedPassword,
                 tipo: tipo,
                 celular: celular,
                 email: email,
