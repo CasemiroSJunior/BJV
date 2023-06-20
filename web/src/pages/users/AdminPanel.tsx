@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { 
+import {
     Alert,
-    Avatar, Button, Chip, Container, Dialog, DialogTitle, Divider, FormControlLabel, Grid, Paper, Stack, Switch, TextField, Tooltip, Typography
- } from "@mui/material";
+    Autocomplete,
+    Avatar, Button, Chip, Container, Dialog, DialogTitle, Divider, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Paper, Select, Stack, Switch, TextField, Tooltip, Typography
+} from "@mui/material";
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
 import TableComponent from '@/components/Table';
 import { api } from '@/lib/axios';
 import { STATUS, USER_TYPE } from '@/config/constants';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { CheckCircle, NotePencil, Pencil, PencilSimpleLine, Trash, XCircle } from 'phosphor-react';
+import { CheckCircle, NotePencil, Pencil, PencilSimpleLine, Trash, TrashSimple, XCircle } from 'phosphor-react';
 import * as Helper from "../../utils/Helper";
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -21,39 +22,39 @@ interface cursoTecnico {
     status: number,
     duracao?: number | undefined,
     periodo?: string | undefined,
-  };
-  
-  interface ensinoMedio {
+};
+
+interface ensinoMedio {
     id: number,
     nome: string,
     status: number,
     duracao?: number | undefined,
     periodo?: string | undefined,
-  };
+};
 
-  interface userProps {
-        id:number,
-        nome:string,
-        tipo:number,
-        email: string,
-        status: number,
-        Alunos:[{
-            rm: number,
-            cpf:string
-            technical: string,
-            highschool:string,
-            curso_tecnico_Id: number,
-            curso_ensino_medio_Id: number,
-        }],
-        Empresas:[{
-            cnpj:string
-        }],
-        Funcionarios:[{
-            cpf:string
-        }],
-  }
+interface userProps {
+    id: number,
+    nome: string,
+    tipo: number,
+    email: string,
+    status: number,
+    Alunos: [{
+        rm: number,
+        cpf: string
+        technical: string,
+        highschool: string,
+        curso_tecnico_Id: number,
+        curso_ensino_medio_Id: number,
+    }],
+    Empresas: [{
+        cnpj: string
+    }],
+    Funcionarios: [{
+        cpf: string
+    }],
+}
 
-  interface filterQueryProps{
+interface filterQueryProps {
     id: number,
     tipo: string,
     nome: string,
@@ -63,68 +64,84 @@ interface cursoTecnico {
     status: string,
     technical: string,
     highschool: string,
-  }
+}
 
-    interface userProps{
-        showDialog: boolean;
-        setShowDialog: (showDialog: boolean)=> void;
-        userData: any[];
-        type?: string;
+interface userProps {
+    showDialog: boolean;
+    setShowDialog: (showDialog: boolean) => void;
+    userData: any[];
+    type?: string;
+}
+
+export function UserDialog(props: userProps) {
+    const { showDialog, setShowDialog, userData, type, ...other } = props;
+    const [selectedUserInfo, setSelectedUserInfo] = useState()
+    const [dataNascimento, setDataNascimento] = useState<Dayjs | null>();
+    const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio[]>()
+    const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico[]>()
+    const [emailConfirmation, setEmailConfirmation] = useState<string>("");
+    /* const [editEnabled, setEditEnabled] = useState(false) */
+
+    const DATA_INFO: any = {
+        id: null,
+        tipo: null,
+        nome: null,
+        cpf: null,
+        cnpj: null,
+        email: null,
+        rm: null,
+        status: null,
+        technical: null,
+        highschool: null,
+        data_nascimento: null,
+        celular: null,
+        telefone: null,
     }
 
-    export function UserDialog(props:userProps){
-        const {showDialog, setShowDialog, userData, type, ...other} = props;
-        const [selectedUserInfo, setSelectedUserInfo] = useState()
-        const [dataNascimento, setDataNascimento] = useState<Dayjs | null>();
-        /* const [editEnabled, setEditEnabled] = useState(false) */
 
-        const DATA_INFO:any= {
-            id: null,
-            tipo: null,
-            nome: null,
-            cpf: null,
-            cnpj:null,
-            email: null,
-            rm:null,
-            status: null,
-            technical: null,
-            highschool: null,
-            data_nascimento:null,
-            celular:null,
-            telefone:null,
-        }
+    const handleGetData = async () => {
+        await api.get('/cursos/tecnico').then((response) => { setEnsinoTecnicoList(response.data.curso) })
+        await api.get('/cursos/medio').then((response) => { setEnsinoMedioList(response.data.curso) })
+    }
 
-    useEffect(()=>{
-        if (userData !== undefined){
-            api.get(`/users/getInfo/${userData}`).then(res=>{
-                let dataTemp = {...DATA_INFO,
+    useEffect(() => {
+        if (userData !== undefined) {
+            api.get(`/users/getInfo/${userData}`).then(res => {
+                let dataTemp = {
+                    ...DATA_INFO,
                     id: res.data?.id,
                     nome: res.data?.nome,
-                    cpf: res.data?.Alunos[0]?.cpf? res.data?.Alunos[0]?.cpf: res.data?.Funcionarios[0]?.cpf,
+                    cpf: res.data?.Alunos[0]?.cpf ? res.data?.Alunos[0]?.cpf : res.data?.Funcionarios[0]?.cpf,
                     cnpj: res.data?.Empresas[0]?.cnpj,
                     email: res.data?.email,
-                    rm:res.data?.Alunos[0]?.rm,
+                    rm: res.data?.Alunos[0]?.rm,
                     status: res.data?.status,
                     technical: res.data?.Alunos[0]?.curso_tecnico_Id,
                     highschool: res.data?.Alunos[0]?.curso_ensino_medio_Id,
                     data_nascimento: res.data?.Alunos[0]?.data_nascimento,
-                    celular:res.data?.celular,
+                    celular: res.data?.celular,
                     telefone: res.data?.Alunos[0]?.telefone
                 }
+                setEmailConfirmation(res.data?.email)
                 console.log(dataTemp)
                 setSelectedUserInfo(dataTemp)
                 setDataNascimento(dayjs(dataTemp.data_nascimento))
+                handleGetData()
             })
         }
-    },[showDialog])
+    }, [showDialog])
 
-    const handleCloseDialog= ()=>{
+    const handleCloseDialog = () => {
         setShowDialog(false)
         setSelectedUserInfo(DATA_INFO)
         /* setEditEnabled(false) */
     }
 
-    const handleDateOfBirth = (date:Dayjs | null)=>{
+    const handleSetEmailValidation = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        setEmailConfirmation(e.target.value)
+    }
+
+    const handleDateOfBirth = (date: Dayjs | null) => {
         setDataNascimento(date)
         let dataTemp = {
             ...selectedUserInfo,
@@ -137,14 +154,14 @@ interface cursoTecnico {
         setEditEnabled(!editEnabled)
     } */
 
-    const handleInput = ((data)=>{
+    const handleInput = ((data) => {
         let { name, value } = data.target
         console.log(type)
-        if (name === "cpf") (String(data.target.value).length) < 15? value = Helper.cpf(data.target.value) : value = selectedUserInfo.Alunos[0].cpf? selectedUserInfo.Alunos[0].cpf : selectedUserInfo.Funcionarios[0].cpf 
-        if (name === "cnpj") (String(data.target.value).length) < 19? value = Helper.cnpj(data.target.value) : value = selectedUserInfo.Empresas[0].cnpj
+        if (name === "cpf") (String(data.target.value).length) < 15 ? value = Helper.cpf(data.target.value) : value = selectedUserInfo.Alunos[0].cpf ? selectedUserInfo.Alunos[0].cpf : selectedUserInfo.Funcionarios[0].cpf
+        if (name === "cnpj") (String(data.target.value).length) < 19 ? value = Helper.cnpj(data.target.value) : value = selectedUserInfo.Empresas[0].cnpj
         if (name === "celular") value = Helper.cell(data.target.value)
         if (name === "telefone") value = Helper.tell(data.target.value)
-        if (name === "rm") (String(data.target.value).length) < 7?   data.target.value != 0? value = Number(Helper.numbersOnlyFilter(data.target.value)) : value = null : value = selectedUserInfo.Alunos[0].rm
+        if (name === "rm") (String(data.target.value).length) < 7 ? data.target.value != 0 ? value = Number(Helper.numbersOnlyFilter(data.target.value)) : value = null : value = selectedUserInfo.Alunos[0].rm
         if (name === "tipo") value = Number(data.target.value)
         if (name === "status") value = Number(data.target.value)
         if (name === 'nome') value = Helper.wordOnlyFilter(data.target.value)
@@ -190,106 +207,189 @@ interface cursoTecnico {
                         </Grid>
                     } */}
                     <Divider />
-                    <Grid container spacing={2} alignItems={'center'} className='p-2'>
+                    <Grid container spacing={2} alignItems={'center'} justifyContent={'center'} className='p-2'>
                         <Grid item xs={12} md={4}>
-                            <TextField 
+                            <TextField
                                 onChange={handleInput}
                                 label="Nome"
                                 name="nome"
                                 value={selectedUserInfo?.nome}
                             />
                         </Grid>
-                        {selectedUserInfo?.cnpj == null?
-                        <Grid item xs={12} md={4}>
-                            <TextField 
-                                onChange={handleInput}
-                                label="CPF"
-                                name="cpf"
-                                value={selectedUserInfo?.cpf}
-                            />
-                        </Grid>
-                        :
-                        <Grid item xs={12} md={4}>
-                            <TextField 
-                                onChange={handleInput}
-                                label="CNPJ"
-                                name="cnpj"
-                                value={selectedUserInfo?.cnpj}
-                            />
-                        </Grid>
+                        {selectedUserInfo?.cnpj == null ?
+                            <Grid item xs={12} md={4}>
+                                <TextField
+                                    onChange={handleInput}
+                                    label="CPF"
+                                    name="cpf"
+                                    value={selectedUserInfo?.cpf}
+                                />
+                            </Grid>
+                            :
+                            <Grid item xs={12} md={4}>
+                                <TextField
+                                    onChange={handleInput}
+                                    label="CNPJ"
+                                    name="cnpj"
+                                    value={selectedUserInfo?.cnpj}
+                                />
+                            </Grid>
                         }
                         <Grid item xs={12} md={4} >
                             <FormControlLabel
-                                control={<Switch color="primary" checked={selectedUserInfo?.status === STATUS.ATIVO}  />}
+                                control={<Switch color="primary" checked={selectedUserInfo?.status === STATUS.ATIVO} />}
                                 label="Status"
                                 labelPlacement="top"
                                 name="status"
-                                onChange={()=>handleInput({target:{name:"status", value: selectedUserInfo?.status === STATUS.INATIVO? STATUS.ATIVO: STATUS.INATIVO}})}
+                                onChange={() => handleInput({ target: { name: "status", value: selectedUserInfo?.status === STATUS.INATIVO ? STATUS.ATIVO : STATUS.INATIVO } })}
                             />
-                            <Tooltip 
-                                arrow 
-                                title={`O usuário está/será definido como: ${selectedUserInfo?.status === STATUS.INATIVO? "INATIVO": "ATIVO"}`}
+                            <Tooltip
+                                arrow
+                                title={`O usuário está/será definido como: ${selectedUserInfo?.status === STATUS.INATIVO ? "INATIVO" : "ATIVO"}`}
                                 placement='top'
                             >
                                 <Chip
-                                    label={selectedUserInfo?.status === STATUS.ATIVO? 
-                                        <CheckCircle size={30} color="#008700" weight='fill'/>
-                                        : 
-                                        <XCircle size={30} color='#cf0000' weight="fill"/>}
+                                    label={selectedUserInfo?.status === STATUS.ATIVO ?
+                                        <CheckCircle size={30} color="#008700" weight='fill' />
+                                        :
+                                        <XCircle size={30} color='#cf0000' weight="fill" />}
                                     variant={"outlined"}
                                 />
                             </Tooltip>
                         </Grid>
-                        { (type === "Aluno" ) && (dataNascimento != null) &&
-                        <>
-                            <Grid item className="mt-2" xs={12} sm={4}>
-                                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                    <Stack >
-                                        <DesktopDatePicker
-                                            label="Data de Nascimento"
-                                            value={dataNascimento}
-                                            views={["year", "month", "day"]}
-                                            onChange={handleDateOfBirth}
-                                            format="DD/MM/YYYY"
-                                        />
-                                    </Stack>
-                                </LocalizationProvider>
-                            </Grid>
-                        </>
+                        {(type === "Aluno") && (dataNascimento != null) &&
+                            <>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        onChange={handleInput}
+                                        label="RM"
+                                        name="rm"
+                                        value={selectedUserInfo?.rm}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <Stack >
+                                            <DesktopDatePicker
+                                                label="Data de Nascimento"
+                                                value={dataNascimento}
+                                                views={["year", "month", "day"]}
+                                                onChange={handleDateOfBirth}
+                                                format="DD/MM/YYYY"
+                                            />
+                                        </Stack>
+                                    </LocalizationProvider>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <FormControl className="w-full">
+                                        <InputLabel className="w-full" id="ensinoMedio">Ensino Médio</InputLabel>
+                                        <Select
+                                            name="highschool"
+                                            labelId="select-ensinoMedio"
+                                            label="Ensino Médio"
+                                            value={selectedUserInfo!.highschool}
+                                            onChange={handleInput}
+                                        >
+                                            {ensinoMedioList?.map((curso: ensinoMedio['curso'][0]) => (
+                                                <MenuItem
+                                                    key={curso.id}
+                                                    value={String(curso?.id)}
+                                                >
+                                                    {curso.nome}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Button className="border-zinc-700 hover:border-zinc-800 text-white bg-gray-700 hover:bg-gray-800" onClick={() => setSelectedUserInfo({ ...selectedUserInfo, highschool: null })}>
+                                        <TrashSimple size={28} />
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={10}>
+                                    <FormControl className="w-full">
+                                        <InputLabel className="w-full" id="ensinoTecnico">Curso Técnico</InputLabel>
+                                        <Select
+                                            name="technical"
+                                            labelId="select-cursoTecnico"
+                                            label="Curso Técnico"
+                                            value={selectedUserInfo!.technical}
+                                            onChange={handleInput}
+                                        >
+                                            {ensinoTecnicoList?.map((curso: cursoTecnico['curso'][0]) => (
+                                                <MenuItem
+                                                    key={curso.id}
+                                                    value={String(curso?.id)}
+                                                >
+                                                    {curso.nome}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={2}>
+                                    <Button className="border-zinc-700 hover:border-zinc-800 text-white bg-gray-700 hover:bg-gray-800" onClick={() => setSelectedUserInfo({ ...selectedUserInfo, technical: null })}>
+                                        <TrashSimple size={28} />
+                                    </Button>
+                                </Grid>
+                            </>
                         }
+                        <Grid item xs={12} md={6} className="mt-2" >
+                            <TextField
+                                variant="outlined"
+                                value={selectedUserInfo?.email}
+                                onChange={handleInput}
+                                name="email"
+                                label="E-Mail"
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6} className="mt-2" >
+                            <TextField
+                                variant="outlined"
+                                value={emailConfirmation}
+                                error={selectedUserInfo?.email !== emailConfirmation ? true : false}
+                                helperText={selectedUserInfo?.email !== emailConfirmation ? "E-Mail divergentes" : ""}
+                                onChange={handleSetEmailValidation}
+                                name="emailConfirmation"
+                                label="Confirmação de E-Mail"
+                                fullWidth
+                            />
+                        </Grid>
                     </Grid>
                 </Paper>
             </Container>
         </Dialog>
     )
-    };
+};
 
-export function DeleteDialog(props:userProps){
-    const {showDialog, setShowDialog, userData, ...other} = props;
+export function DeleteDialog(props: userProps) {
+    const { showDialog, setShowDialog, userData, ...other } = props;
     const [userInfo, setUserInfo] = useState();
-    
-    useEffect(()=>{
-        if (userData !== undefined){
-            api.get(`/users/getInfo/${userData}`).then(res=>{
+
+    useEffect(() => {
+        if (userData !== undefined) {
+            api.get(`/users/getInfo/${userData}`).then(res => {
                 console.log(res)
                 setUserInfo(res.data)
             })
         }
-    },[showDialog])
+    }, [showDialog])
 
-    const handleClose=(()=>{
+    const handleClose = (() => {
         setShowDialog(false)
         setUserInfo([])
     })
 
-    const handleDeleteUser=(async()=>{
+    const handleDeleteUser = (async () => {
         const deleteUser = await api.delete(`/user/delete/${Number(userInfo?.id)}`)
         alert(deleteUser.data)
         setShowDialog(false)
         setUserInfo([])
     })
 
-    return(
+    return (
         userInfo != undefined &&
         <Dialog open={showDialog} onClose={handleClose} fullWidth>
             <Grid container justifyContent={'center'} className='p-2'>
@@ -310,109 +410,110 @@ export function DeleteDialog(props:userProps){
 
 
 export default function AdminPanel() {
-    
+
     const [userList, setUserList] = useState<filterQueryProps[]>([])
     const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio[]>()
     const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico[]>()
     const [selectedUserId, setSelectedUserId] = useState()
     const [selectedUserType, setSelectedUserType] = useState()
-    const [showDialog, setShowDialog ] = useState<boolean>(false);
-    const [showDialogDelete, setShowDialogDelete ] = useState<boolean>(false);
+    const [showDialog, setShowDialog] = useState<boolean>(false);
+    const [showDialogDelete, setShowDialogDelete] = useState<boolean>(false);
 
-    const handleGetData = async()=>{
-        await api.get('/cursos/tecnico').then((response)=> {setEnsinoTecnicoList(response.data.curso)})
-        await api.get('/cursos/medio').then((response)=> {setEnsinoMedioList(response.data.curso)})
+    const handleGetData = async () => {
+        await api.get('/cursos/tecnico').then((response) => { setEnsinoTecnicoList(response.data.curso) })
+        await api.get('/cursos/medio').then((response) => { setEnsinoMedioList(response.data.curso) })
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         handleGetData()
-    },[])
+    }, [])
 
-    const DATA_QUERY= {
+    const DATA_QUERY = {
         id: null,
         tipo: null,
         email: null,
         rm: null,
         status: 0,
-        highschool:null,
+        highschool: null,
         technical: null,
 
     }
 
-    const handleSetUserInfo=(params:any)=>{
+    const handleSetUserInfo = (params: any) => {
         setSelectedUserId(params.row.id)
         setShowDialog(true)
         setSelectedUserType(params.row.tipo)
     }
 
-    const handleDeleteUser=(params:any)=>{
+    const handleDeleteUser = (params: any) => {
         setShowDialogDelete(true)
         setSelectedUserId(params.row.id)
     }
 
 
-    useEffect( ()=>{
-        api.get('/users/type//name//status//technical//highschool/').then(response=> { 
-            let userTypeName:string;
-            let CNPJCPF:string;
+    useEffect(() => {
+        api.get('/users/type//name//status//technical//highschool/').then(response => {
+            let userTypeName: string;
+            let CNPJCPF: string;
             let LIST: filterQueryProps[] = [];
-            response.data.userList.map( (user:userProps)=>{
+            response.data.userList.map((user: userProps) => {
                 if (user.tipo === USER_TYPE.FUNCIONARIO) {
-                    userTypeName="Funcionário"
-                    CNPJCPF=user.Funcionarios[0].cpf
+                    userTypeName = "Funcionário"
+                    CNPJCPF = user.Funcionarios[0].cpf
                 }
 
                 if (user.tipo === USER_TYPE.ALUNO) {
-                    userTypeName="Aluno"
-                    CNPJCPF=user.Alunos[0].cpf
+                    userTypeName = "Aluno"
+                    CNPJCPF = user.Alunos[0].cpf
                 }
                 if (user.tipo === USER_TYPE.EMPRESA) {
-                    userTypeName="Empresa"
-                    CNPJCPF=user.Empresas[0].cnpj
+                    userTypeName = "Empresa"
+                    CNPJCPF = user.Empresas[0].cnpj
                 }
-                
-                const FILTER_QUERY:any= {... DATA_QUERY,
+
+                const FILTER_QUERY: any = {
+                    ...DATA_QUERY,
                     id: user.id,
                     tipo: userTypeName,
                     nome: user.nome,
                     cpf: CNPJCPF,
                     email: user.email,
-                    rm: user.Alunos[0]?.rm !== undefined? user.Alunos[0].rm : "",
-                    status: user.status === 0? "Inativo": "Ativo",
-                    technical: ensinoTecnicoList?.filter((e:{id: number})=> e.id === user.Alunos[0]?.curso_tecnico_Id)[0]?.nome,
-                    highschool: ensinoMedioList?.filter((e:{id: number})=> e.id === user.Alunos[0]?.curso_ensino_medio_Id)[0]?.nome,
+                    rm: user.Alunos[0]?.rm !== undefined ? user.Alunos[0].rm : "",
+                    status: user.status === 0 ? "Inativo" : "Ativo",
+                    technical: ensinoTecnicoList?.filter((e: { id: number }) => e.id === user.Alunos[0]?.curso_tecnico_Id)[0]?.nome,
+                    highschool: ensinoMedioList?.filter((e: { id: number }) => e.id === user.Alunos[0]?.curso_ensino_medio_Id)[0]?.nome,
                 }
-                
+
                 LIST.push(FILTER_QUERY)
                 setUserList(LIST)
             })
         })
-        
-    },[ensinoMedioList, ensinoTecnicoList])
+
+    }, [ensinoMedioList, ensinoTecnicoList])
 
     const columns = [
-        {field: "id", headerName:"ID", width:80},
-        {field: "tipo", headerName:"Tipo", width:100},
-        {field: "nome", headerName:"Nome", width:170},
-        {field: "cpf", headerName:"CPF/CNPJ", sortable:false,width:150},
-        {field: "email", headerName:"E-Mail", width:220},
-        {field: "rm", headerName:"RM", width:100},
-        {field: "status", headerName:"Status", width:80},
-        {field: "highschool", flex:2, headerName:"Ensino Médio", width:270},
-        {field: "technical", flex:2, headerName:"Técnico", width:270},
+        { field: "id", headerName: "ID", width: 80 },
+        { field: "tipo", headerName: "Tipo", width: 100 },
+        { field: "nome", headerName: "Nome", width: 170 },
+        { field: "cpf", headerName: "CPF/CNPJ", sortable: false, width: 150 },
+        { field: "email", headerName: "E-Mail", width: 220 },
+        { field: "rm", headerName: "RM", width: 100 },
+        { field: "status", headerName: "Status", width: 80 },
+        { field: "highschool", flex: 2, headerName: "Ensino Médio", width: 270 },
+        { field: "technical", flex: 2, headerName: "Técnico", width: 270 },
         {
             field: 'actions',
             type: 'actions',
             getActions: (params: GridRowParams) => [
-              <GridActionsCellItem icon={<Pencil size={24}/>} onClick={()=>handleSetUserInfo(params)} label="Editar" />,
-              <GridActionsCellItem icon={<Trash/>} onClick={()=>handleDeleteUser(params)} label="Apagar" showInMenu />,
+                <GridActionsCellItem icon={<Pencil size={24} />} onClick={() => handleSetUserInfo(params)} label="Editar" />,
+                <GridActionsCellItem icon={<Trash />} onClick={() => handleDeleteUser(params)} label="Apagar" showInMenu />,
             ]
-          }
+        }
     ]
     return (
         <>
             <Layout />
-            <Grid 
+            <Grid
                 justifyContent="center"
                 container
                 className="mb-24 mt-12 p-10"
