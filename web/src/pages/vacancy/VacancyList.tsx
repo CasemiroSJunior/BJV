@@ -157,16 +157,16 @@ export default function Vacancy( ) {
                                 </Typography>
                                 <Divider />
                                 <Grid container  >
-                                    <Grid item className="py-1.5 px-8" xs={8}>
+                                    {/* <Grid item className="py-1.5 px-8" xs={8}>
                                         <Button onClick={()=>handleOpenDialog(vaga)} size='large' variant="outlined" className='border rounded-md border-EtecGrayText hover:border-zinc-800  hover:bg-blue-400 text-base bg-blue-600 text-EtecLightGray hover:text-white'>
                                                 Ver mais
                                         </Button>
-                                    </Grid>
-                                    <Grid item xs={1}/>
-                                    <Grid item className="p-2" xs={3}>
+                                    </Grid> */}
+                                    <Grid item xs={4}/>
+                                    <Grid item className="p-2 w-full" xs={12}>
                                         <Tooltip title="Aplicar a vaga" arrow>
-                                            <Button className="rounded-xl" onClick={()=>handleVacancySubscribe(1, vaga.id)}>
-                                                <PlusCircle size={26} className='hover:text-zinc-600 text-zinc-900 w-auto ' weight="bold"  />
+                                            <Button className="rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-center" onClick={()=>handleVacancySubscribe(1, vaga.id)}>
+                                                Inscrever-se
                                             </Button>
                                         </Tooltip>
                                     </Grid>

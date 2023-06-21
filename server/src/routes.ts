@@ -249,7 +249,7 @@ export async function appRoute(app: FastifyInstance){
         }
     )
 
-    app.put('/vacancy/update/userId/:userId/vacancyId/:vacancyId', async(request: FastifyRequest<{ Params: GetVacancyParams }>, reply)=>{
+    app.patch('/vacancy/update/userId/:userId/vacancyId/:vacancyId', async(request: FastifyRequest<{ Params: GetVacancyParams }>, reply)=>{
         const paramsBody = z.object({
             userId: z.number(),
             vacancyId: z.number()
@@ -283,7 +283,6 @@ export async function appRoute(app: FastifyInstance){
             data_inicio,
             data_termino,
             descricao,
-            empresasUsersId,
             remunerado,
             salario,
             status,
@@ -299,7 +298,6 @@ export async function appRoute(app: FastifyInstance){
                 data_termino: new Date(data_termino),
                 titulo: titulo,
                 descricao: descricao,
-                empresasUsersId: empresasUsersId,
                 remunerado: remunerado,
                 salario: salario,
                 status: status,
@@ -308,6 +306,8 @@ export async function appRoute(app: FastifyInstance){
                 confidencial_salario: confidencial_salario,
             }
         })
+
+        console.log(request.body)
     })
 
     app.get('/users/type/:tipo/name/:nome/status/:status/technical/:cursoTecnico/highschool/:ensinoMedio', async (request: FastifyRequest<{ Params: GetUsersParams }>, reply) => {

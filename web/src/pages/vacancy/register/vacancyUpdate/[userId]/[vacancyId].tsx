@@ -75,8 +75,8 @@ export default function VacancyRegister() {
     },[vacancyData])
 
     const handleUpdateVacancy =async()=>{
-        try{
-            await api.put(`vacancy/update/userId/${userId}/vacancyId/${vacancyId}`,{
+
+        let dataTemp ={
                 titulo: newVacancy.titulo,
                 descricao: newVacancy.descricao,
                 salario: newVacancy.remunerado === 1? (newVacancy.confidencial_salario == 1? 0 : Number((String(newVacancy.salario).replace(",", ".")).replace(".",""))) : 0,
@@ -88,10 +88,12 @@ export default function VacancyRegister() {
                 empresasUsersId: newVacancy.empresasUsersId,
                 data_termino: finalDate?.format('YYYY-MM-DD'),
                 data_inicio: startDate?.format('YYYY-MM-DD'),
-                
-            })
+        }
+
+        try{
+            await api.patch(`vacancy/update/userId/${userId}/vacancyId/${vacancyId}`,dataTemp)
             alert("Vaga Atualizada com sucesso")
-            setNewVacancy(NEW_VACANCY);
+            setNewVacancy(dataTemp);
             setStartDate(dayjs(new Date()));
             setFinalDate(dayjs(new Date()))
         }catch(err){
@@ -112,8 +114,6 @@ export default function VacancyRegister() {
     const handleChangeFinalDate = (date:Dayjs | null)=>{
         setFinalDate(date)
     }
-
-    
 
     return (
         <> 
@@ -159,6 +159,7 @@ export default function VacancyRegister() {
                                     id="outlined-multiline-static"
                                     label="Descrição"
                                     multiline
+                                    value={newVacancy.descricao? newVacancy.descricao : ""}
                                     onChange={handleInput}
                                     name="descricao"
                                     rows={8}
