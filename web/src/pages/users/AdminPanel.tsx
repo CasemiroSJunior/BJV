@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import {
-    Alert,
-    Autocomplete,
-    Avatar, Button, Chip, Container, Dialog, DialogTitle, Divider, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Paper, Select, Stack, Switch, TextField, Tooltip, Typography
+    Button, Chip, Container, Dialog, DialogTitle, Divider, FormControl, FormControlLabel, Grid, 
+    IconButton, InputAdornment, InputLabel, MenuItem, Paper, Select, Stack, Switch, TextField, 
+    Tooltip, Typography
 } from "@mui/material";
+
 import Layout from "../layout";
 import LayoutBottom from "../layoutBottom";
 import TableComponent from '@/components/Table';
 import { api } from '@/lib/axios';
 import { STATUS, USER_TYPE } from '@/config/constants';
 import { GridActionsCellItem, GridRowParams } from '@mui/x-data-grid';
-import { CheckCircle, NotePencil, Pencil, PencilSimpleLine, Trash, TrashSimple, XCircle } from 'phosphor-react';
+import { CheckCircle, Eye, EyeClosed, NotePencil, Pencil, PencilSimpleLine, Trash, TrashSimple, XCircle } from 'phosphor-react';
 import * as Helper from "../../utils/Helper";
 import { DesktopDatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -80,8 +81,8 @@ export function UserDialog(props: userProps) {
     const [ensinoMedioList, setEnsinoMedioList] = useState<ensinoMedio[]>()
     const [ensinoTecnicoList, setEnsinoTecnicoList] = useState<cursoTecnico[]>()
     const [emailConfirmation, setEmailConfirmation] = useState<string>("");
-    /* const [editEnabled, setEditEnabled] = useState(false) */
-
+    const [editEnabled, setEditEnabled] = useState(false)
+    const [changePassword, setChangePassword] = useState(false);
     const DATA_INFO: any = {
         id: null,
         tipo: null,
@@ -112,7 +113,7 @@ export function UserDialog(props: userProps) {
                     id: res.data?.id,
                     nome: res.data?.nome,
                     cpf: res.data?.Alunos[0]?.cpf ? res.data?.Alunos[0]?.cpf : res.data?.Funcionarios[0]?.cpf,
-                    cnpj: res.data?.Empresas[0]?.cnpj,
+                    cnpj: res.data?.Empresas[0]?.cnpj? Helper.cnpj(res.data?.Empresas[0]?.cnpj) : null,
                     email: res.data?.email,
                     rm: res.data?.Alunos[0]?.rm,
                     status: res.data?.status,
@@ -120,7 +121,8 @@ export function UserDialog(props: userProps) {
                     highschool: res.data?.Alunos[0]?.curso_ensino_medio_Id,
                     data_nascimento: res.data?.Alunos[0]?.data_nascimento,
                     celular: res.data?.celular,
-                    telefone: res.data?.Alunos[0]?.telefone
+                    telefone: res.data?.Alunos[0]?.telefone,
+                    tipo: res.data?.tipo
                 }
                 setEmailConfirmation(res.data?.email)
                 console.log(dataTemp)
@@ -134,7 +136,7 @@ export function UserDialog(props: userProps) {
     const handleCloseDialog = () => {
         setShowDialog(false)
         setSelectedUserInfo(DATA_INFO)
-        /* setEditEnabled(false) */
+        setEditEnabled(false)
     }
 
     const handleSetEmailValidation = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -150,9 +152,15 @@ export function UserDialog(props: userProps) {
         setSelectedUserInfo(dataTemp)
     }
 
-    /* const handleEnableEdit = ()=>{
+    const handleEnableEdit = () => {
         setEditEnabled(!editEnabled)
-    } */
+    }
+
+    const handleChangePassword = (e: boolean) => {
+        setChangePassword(e)
+        console.log("foi")
+        console.log(e)
+    }
 
     const handleInput = ((data) => {
         let { name, value } = data.target
@@ -174,42 +182,58 @@ export function UserDialog(props: userProps) {
         console.log(dataTemp)
     })
 
+    const handleSubmit = async()=>{
+        try{
+            const updateUser = await api.patch(`/update/user/${selectedUserInfo!.id}`,selectedUserInfo);
+            console.log(updateUser)
+            alert(updateUser.data)
+            handleCloseDialog()
+        }catch(err){
+            alert("Erro ao atualizar usuário.")
+        }
+    }
+
     return (
         <Dialog open={showDialog} fullWidth onClose={handleCloseDialog}>
             <Container >
                 <DialogTitle className=' text-2xl text-center '> Editar Usuário </DialogTitle>
                 <Paper>
-                    {/* {editEnabled?
-                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-gray-500'>
-                            <Grid  item >
-                                <Typography className='text-white font-thin'>
-                                    Edição Habilitada
+                    {editEnabled ?
+                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-EtecLightGray'>
+                            <Grid item >
+                                <Typography className='text-black font-thin'>
+                                    Modo Edição
                                 </Typography>
                             </Grid>
                             <Grid item>
-                                <Button className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-orange-500 hover:bg-orange-600'>
-                                    <PencilSimpleLine onClick={handleEnableEdit} color="white" weight='regular' size={20} />
-                                </Button>
+                                <Tooltip arrow title="Você habilitou a edição deste usuário, clique para desativar">
+                                    <Button onClick={handleEnableEdit} className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-DefaultRedEtec hover:bg-DefaultHoverBoldEtec'>
+                                        <PencilSimpleLine color="white" weight='regular' size={20} />
+                                    </Button>
+                                </Tooltip>
                             </Grid>
                         </Grid>
-                    :
-                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-gray-500'>
-                            <Grid  item >
-                                <Typography className='text-white font-thin'>
-                                    Habilitar Edição
+                        :
+                        <Grid container justifyContent={"end"} alignItems={"center"} className='p-2 bg-EtecLightGray'>
+                            <Grid item >
+                                <Typography className='text-black font-thin'>
+                                    Modo Visualização
                                 </Typography>
                             </Grid>
                             <Grid item>
-                                <Button className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-orange-500 hover:bg-orange-600'>
-                                    <PencilSimpleLine onClick={handleEnableEdit}  color="white" weight='regular' size={20} />
-                                </Button>
+                                <Tooltip arrow title="Clique para habilitar a visualização deste usuário">
+                                    <Button onClick={handleEnableEdit} className='ml-3 border border-zinc-800  hover:border-zinc-900 rounded-md bg-DefaultRedEtec hover:bg-DefaultHoverBoldEtec'>
+                                        <Eye color="white" weight='regular' size={20} />
+                                    </Button>
+                                </Tooltip>
                             </Grid>
                         </Grid>
-                    } */}
+                    }
                     <Divider />
                     <Grid container spacing={2} alignItems={'center'} justifyContent={'center'} className='p-2'>
                         <Grid item xs={12} md={4}>
                             <TextField
+                                disabled={!editEnabled}
                                 onChange={handleInput}
                                 label="Nome"
                                 name="nome"
@@ -219,6 +243,7 @@ export function UserDialog(props: userProps) {
                         {selectedUserInfo?.cnpj == null ?
                             <Grid item xs={12} md={4}>
                                 <TextField
+                                    disabled={!editEnabled}
                                     onChange={handleInput}
                                     label="CPF"
                                     name="cpf"
@@ -228,6 +253,7 @@ export function UserDialog(props: userProps) {
                             :
                             <Grid item xs={12} md={4}>
                                 <TextField
+                                    disabled={!editEnabled}
                                     onChange={handleInput}
                                     label="CNPJ"
                                     name="cnpj"
@@ -237,6 +263,7 @@ export function UserDialog(props: userProps) {
                         }
                         <Grid item xs={12} md={4} >
                             <FormControlLabel
+                                disabled={!editEnabled}
                                 control={<Switch color="primary" checked={selectedUserInfo?.status === STATUS.ATIVO} />}
                                 label="Status"
                                 labelPlacement="top"
@@ -261,6 +288,7 @@ export function UserDialog(props: userProps) {
                             <>
                                 <Grid item xs={12} sm={6}>
                                     <TextField
+                                        disabled={!editEnabled}
                                         fullWidth
                                         onChange={handleInput}
                                         label="RM"
@@ -272,6 +300,7 @@ export function UserDialog(props: userProps) {
                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                         <Stack >
                                             <DesktopDatePicker
+                                                disabled={!editEnabled}
                                                 label="Data de Nascimento"
                                                 value={dataNascimento}
                                                 views={["year", "month", "day"]}
@@ -285,6 +314,7 @@ export function UserDialog(props: userProps) {
                                     <FormControl className="w-full">
                                         <InputLabel className="w-full" id="ensinoMedio">Ensino Médio</InputLabel>
                                         <Select
+                                            disabled={!editEnabled}
                                             name="highschool"
                                             labelId="select-ensinoMedio"
                                             label="Ensino Médio"
@@ -303,15 +333,24 @@ export function UserDialog(props: userProps) {
                                     </FormControl>
                                 </Grid>
                                 <Grid item xs={2}>
-                                    <Button className="border-zinc-700 hover:border-zinc-800 text-white bg-gray-700 hover:bg-gray-800" onClick={() => setSelectedUserInfo({ ...selectedUserInfo, highschool: null })}>
-                                        <TrashSimple size={28} />
-                                    </Button>
+                                    <Tooltip arrow title="Ao clicar, irá desvincular o curso do Aluno." >
+                                        <Button
+                                            disabled={!editEnabled}
+                                            className={
+                                                `border-zinc-700  hover:border-zinc-800  ${editEnabled ? "bg-gray-700 hover:bg-gray-800  text-white " : "bg-gray-200 hover:bg-gray-300 text-black"} `
+                                            }
+                                            onClick={() => setSelectedUserInfo({ ...selectedUserInfo, highschool: null })}
+                                        >
+                                            <TrashSimple size={28} />
+                                        </Button>
+                                    </Tooltip>
                                 </Grid>
                                 <Grid item xs={10}>
                                     <FormControl className="w-full">
                                         <InputLabel className="w-full" id="ensinoTecnico">Curso Técnico</InputLabel>
                                         <Select
                                             name="technical"
+                                            disabled={!editEnabled}
                                             labelId="select-cursoTecnico"
                                             label="Curso Técnico"
                                             value={selectedUserInfo!.technical}
@@ -329,15 +368,24 @@ export function UserDialog(props: userProps) {
                                     </FormControl>
                                 </Grid>
                                 <Grid item xs={2}>
-                                    <Button className="border-zinc-700 hover:border-zinc-800 text-white bg-gray-700 hover:bg-gray-800" onClick={() => setSelectedUserInfo({ ...selectedUserInfo, technical: null })}>
-                                        <TrashSimple size={28} />
-                                    </Button>
+                                    <Tooltip arrow title="Ao clicar, irá desvincular o curso do Aluno." >
+                                        <Button
+                                            disabled={!editEnabled}
+                                            className={
+                                                `border-zinc-700  hover:border-zinc-800  ${editEnabled ? "bg-gray-700 hover:bg-gray-800  text-white " : "bg-gray-200 hover:bg-gray-300 text-black"}`
+                                            }
+                                            onClick={() => setSelectedUserInfo({ ...selectedUserInfo, technical: null })}
+                                        >
+                                            <TrashSimple size={28} />
+                                        </Button>
+                                    </Tooltip>
                                 </Grid>
                             </>
                         }
                         <Grid item xs={12} md={6} className="mt-2" >
                             <TextField
                                 variant="outlined"
+                                disabled={!editEnabled}
                                 value={selectedUserInfo?.email}
                                 onChange={handleInput}
                                 name="email"
@@ -349,6 +397,7 @@ export function UserDialog(props: userProps) {
                             <TextField
                                 variant="outlined"
                                 value={emailConfirmation}
+                                disabled={!editEnabled}
                                 error={selectedUserInfo?.email !== emailConfirmation ? true : false}
                                 helperText={selectedUserInfo?.email !== emailConfirmation ? "E-Mail divergentes" : ""}
                                 onChange={handleSetEmailValidation}
@@ -357,12 +406,182 @@ export function UserDialog(props: userProps) {
                                 fullWidth
                             />
                         </Grid>
+                        <Grid item xs={12} md={6} className="mt-2" >
+                            <TextField
+                                variant="outlined"
+                                disabled={!editEnabled}
+                                value={selectedUserInfo?.telefone}
+                                onChange={handleInput}
+                                name="telefone"
+                                label="Telefone"
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6} className="mt-2" >
+                            <TextField
+                                variant="outlined"
+                                disabled={!editEnabled}
+                                value={selectedUserInfo?.celular}
+                                onChange={handleInput}
+                                name="celular"
+                                label="Celular"
+                                fullWidth
+                            />
+                        </Grid>
+                        <Grid item xs={8} className='p-2'>
+                            <Button
+                                disabled={!editEnabled}
+                                onClick={() => handleChangePassword(true)}
+                                className={` w-full ${editEnabled ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-black"}`}
+                            >
+                                Atualizar Senha
+                            </Button>
+                        </Grid>
+                        <Divider/>
+                        <Grid item xs={6} className='p-2'>
+                            <Button
+                                disabled={!editEnabled}
+                                onClick={handleCloseDialog}
+                                className={` w-full ${editEnabled ? "bg-red-600 hover:bg-red-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-black"}`}
+                            >
+                                Cancelar
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6} className='p-2'>
+                            <Button
+                                disabled={!editEnabled}
+                                onClick={handleSubmit}
+                                className={` w-full ${editEnabled ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-black"}`}
+                            >
+                                    Atualizar
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Paper>
             </Container>
+            <PasswordChange
+                showDialog={changePassword}
+                setShowDialog={handleChangePassword}
+                userData={selectedUserInfo}
+            />
         </Dialog>
     )
 };
+
+export function PasswordChange(props: userProps) {
+    const { showDialog, setShowDialog, userData, ...other } = props;
+    const [userInfo, setUserInfo] = useState();
+    const [passwordConfirmation, setPasswordConfirmation] = useState<string >("");
+    const [passwordHidden, setPasswordHidden] = useState<boolean>(true)
+    const [password, setPassword] = useState("");
+
+    const handleClose = (() => {
+        setShowDialog(false)
+        setPasswordConfirmation("")
+        setPasswordHidden(true)
+        setPassword("")
+    })
+
+    const handleChangePassword = (async () => {
+
+        if (passwordConfirmation === password){
+            let dataTemp = {
+                ...userData,
+                senha: password
+            }
+        
+            const updatePassword = await api.patch(`/changePass/${Number(dataTemp.id)}`,dataTemp)
+            alert(updatePassword.data)
+            setShowDialog(false)
+            setUserInfo([])
+            setPasswordConfirmation("")
+            setPasswordHidden(true)
+            setPassword("")
+        }else{
+            alert("Verifique a diferença de senha antes de prosseguir!")
+        }
+    })
+
+    const handleClickShowPassword = () => {
+        setPasswordHidden(!passwordHidden);
+    };
+
+    const handleSetPasswordValidation = (e: React.ChangeEvent<HTMLTextAreaElement>) =>{
+        setPasswordConfirmation(e.target.value)
+    }
+
+    const handleChangePass = (e)=>{
+        setPassword(e.target.value)
+    }
+
+    return (
+        <Dialog open={showDialog} onClose={handleClose} fullWidth>
+            <Grid container justifyContent={'center'} className='p-2'>
+                <DialogTitle className='bg-EtecLightGray w-full text-center p-2'>Você irá alterar a senha deste usuário.</DialogTitle>
+                <Grid container justifyContent={'center'} spacing={2} item xs={12} className='p-2'>
+                    <Grid item xs={12} md={6} className="mt-2" >
+                        <TextField
+                            variant="outlined"
+                            value={password}
+                            type={passwordHidden ? "password" : "text"}
+                            onChange={handleChangePass}
+                            name="senha"
+                            label="Senha"
+                            fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => handleClickShowPassword()}>
+                                            <Tooltip title="Habilita/Desabilita a visualização de senha.">
+                                                {passwordHidden ? <EyeClosed /> : <Eye />}
+                                            </Tooltip>
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6} className="mt-2" >
+                        <TextField
+                            variant="outlined"
+                            value={passwordConfirmation}
+                            type={passwordHidden ? "password" : "text"}
+                            error={password !== passwordConfirmation ? true : false}
+                            helperText={password !== passwordConfirmation ? "Senhas divergentes" : ""}
+                            onChange={handleSetPasswordValidation}
+                            name="passwordConfirmation"
+                            label="Confirmação de Senha"
+                            fullWidth
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={() => handleClickShowPassword()}>
+                                            <Tooltip title="Habilita/Desabilita a visualização de senha.">
+                                                {passwordHidden ? <EyeClosed /> : <Eye />}
+                                            </Tooltip>
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container justifyContent={'center'} spacing={2} className='mt-2'>
+                    <Grid item xs={6}>
+                        <Button onClick={handleClose}className="bg-red-600 hover:bg-red-700 text-white w-full p-2">
+                            Cancelar
+                        </Button>
+                    </Grid>
+                    <Grid item xs={6} >
+                        <Button onClick={handleChangePassword} className="bg-green-600 hover:bg-green-700 text-white w-full p-2">
+                            Alterar
+                        </Button>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Dialog>
+    )
+}
 
 export function DeleteDialog(props: userProps) {
     const { showDialog, setShowDialog, userData, ...other } = props;

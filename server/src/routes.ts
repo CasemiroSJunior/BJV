@@ -76,6 +76,102 @@ export async function appRoute(app: FastifyInstance){
         }
 
     })
+
+    app.patch('/changePass/:id', async(request, reply) =>{
+
+        const { senha, id } = request.body
+
+        const hashedPassword = await hashPassword(senha);
+
+
+        try{
+            await prisma.users.update({
+                where:{id: id},
+                data:{
+                    senha: hashedPassword
+                }
+            })
+            reply.status(201).send("Senha atualizada com sucesso!")
+        }catch(err){
+            return reply.send(`Erro ao atualizar senha ${err}`)
+        }
+
+    })
+
+    app.patch('/update/user/:id', async(request, reply) =>{
+
+        const { id, celular, rm, email, nome, status, cpf, cnpj, telefone, highschool, technical, tipo } = request.body
+
+        console.log(tipo)
+
+        let data={}
+
+        if (rm !== null){
+            data= {
+                celular: celular,
+                email: email,
+                nome: nome,
+                status: status,
+                Alunos:{
+                    update:{
+                        where:{usersId: id},
+                        data:{
+                            rm: rm,
+                            cpf: cpf,
+                            curso_ensino_medio_Id: highschool,
+                            curso_tecnico_Id: technical
+                        }
+                    }
+                }
+            }
+        }
+
+        if (cnpj !== null){
+            data={
+                celular: celular,
+                email: email,
+                nome: nome,
+                status: status,
+                Empresas:{
+                    update:{
+                        where:{usersId: id},
+                        data:{
+                            cnpj: cnpj,
+                            telefone: telefone? telefone : null
+                        }
+                    }
+                }
+            }
+        }
+
+        if (cnpj === null && rm === null){
+            data={
+                celular: celular,
+                email: email,
+                nome: nome,
+                status: status,
+                Funcionarios:{
+                    update:{
+                        where:{usersId: id},
+                        data:{
+                            cpf: cpf
+                        }
+                    }
+                }
+            }
+        }
+
+        try{
+            await prisma.users.update({
+                where:{id: id},
+                data: data
+            })
+            reply.status(201).send("Usuário atualizado com sucesso!")
+        }catch(err){
+            return reply.send(`Erro ao atualizar usuário ${err}`)
+        }
+
+    })
     
     app.get('/vacancies', async () => {
         const vacancies = await prisma.vagas.findMany({
@@ -349,7 +445,6 @@ export async function appRoute(app: FastifyInstance){
 
         return reply.status(201).send({ newStudent })
     })
-
 
     app.post('/new/user/company', async (request, reply) => {
         const newCompanyBody = z.object({
